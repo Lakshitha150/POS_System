@@ -135,15 +135,92 @@
                         </div>
                     </div>    
                 </div>
+
+                <div class="dashboard-filters">
+                    <div class="filter-field">
+                        <label for="dashboard-representative-filter">Representative</label>
+                        <select id="dashboard-representative-filter">
+                            <option value="">All Representatives</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dashboard-place-filter">Place</label>
+                        <select id="dashboard-place-filter">
+                            <option value="">All Places</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dashboard-status-filter">Status</label>
+                        <select id="dashboard-status-filter">
+                            <option value="">All Status</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dashboard-year-filter">Year</label>
+                        <select id="dashboard-year-filter">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dashboard-month-filter">Month</label>
+                        <select id="dashboard-month-filter">
+                            <option value="">All Months</option>
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                    </div>
+                    <button id="dashboard-clear-filters" type="button">Clear</button>
+                </div>
+
+                <div class="dashboard-insights">
+                    <div class="insight-card">
+                        <div class="insight-title">
+                            <span>Upcoming Meetings & Notes</span>
+                            <strong id="meeting-count">0</strong>
+                        </div>
+                        <div id="appointment-list" class="appointment-list"></div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-title">
+                            <span>Revenue by Representative</span>
+                            <strong id="filtered-revenue">Rs 0</strong>
+                        </div>
+                        <div id="representative-revenue-list" class="metric-list"></div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-title">
+                            <span>Status Summary</span>
+                            <strong id="completed-count">0 Complete</strong>
+                        </div>
+                        <div id="status-summary-list" class="metric-list"></div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-title">
+                            <span>Revenue by Month</span>
+                            <strong id="best-month">No Data</strong>
+                        </div>
+                        <div id="monthly-revenue-list" class="metric-list"></div>
+                    </div>
+                </div>
     
                 <div class="charts">
                     <div class="charts-card">
-                      <h2 class="chart-title">Top 5 Frames/Lenses</h2>
+                      <h2 class="chart-title">Revenue by Year</h2>
                       <div id="bar-chart"></div>
                     </div>
           
                     <div class="charts-card">
-                      <h2 class="chart-title">Appointments & Orders</h2>
+                      <h2 class="chart-title">Monthly Revenue</h2>
                       <div id="area-chart"></div>
                     </div>
                 </div>
@@ -156,6 +233,16 @@
                     <button id="add-customer" class="add-customer-button">Add Customer</button>
                 </div>
 
+                <form id="quick-customer-form" class="quick-customer-form">
+                    <input type="text" id="quickCustomerName" placeholder="Customer Name" required>
+                    <input type="text" id="quickContactNo" placeholder="Phone Number" required>
+                    <input type="text" id="quickPlace" placeholder="Place / Village">
+                    <input type="text" id="quickTown" placeholder="Town">
+                    <input type="text" id="quickRepresentative" placeholder="Representative">
+                    <input type="date" id="quickAppointmentDate" title="Appointment Date">
+                    <button type="submit">Quick Add</button>
+                </form>
+
                 <!-- -------------- Add Customer Form -------------- -->
                 <div id="customerRegisterForm" class="customerRegisterForm">
                     <div class="registerForm">
@@ -165,6 +252,10 @@
                         <form id="customer-form" class="customer-form">
                             <div class="customer-form-row">
                                 <input type="text" id="town" name="town" placeholder="Town">
+                            </div>
+
+                            <div class="customer-form-row">
+                                <input type="text" id="place" name="place" placeholder="Place / Village">
                             </div>
 
                             <div class="customer-form-row">
@@ -241,6 +332,7 @@
                     <thead>
                         <tr>
                             <th>Town</th>
+                            <th>Place</th>
                             <th>Representative</th>
                             <th>Customer ID</th>
                             <th>Name</th>

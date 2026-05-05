@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const table = document.getElementById("customer-table-list");
     const form = document.getElementById("customer-form");
+    const quickForm = document.getElementById("quick-customer-form");
     const popup = document.getElementById("customerRegisterForm");
     const title = document.getElementById("registerTitle");
     const btn = document.getElementById("customer-submit");
@@ -49,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         table.innerHTML = "";
 
         if (!customerDataList.length) {
-            table.innerHTML = `<tr><td colspan="17">No customers found. Check the Google Apps Script deployment.</td></tr>`;
+            table.innerHTML = `<tr><td colspan="18">No customers found. Check the Google Apps Script deployment.</td></tr>`;
             return;
         }
 
@@ -59,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function normalizeCustomer(c) {
         return {
             town: c.town || c.Town || "",
+            place: c.place || c.Place || "",
             representative: c.representative || c.Representative || "",
             customerID: c.customerID || c.customerId || c["Customer ID"] || c.custId || "",
             name: c.name || c.Name || c.custName || c.customerName || "",
@@ -91,6 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         row.innerHTML = `
             <td>${c.town}</td>
+            <td>${c.place}</td>
             <td>${c.representative}</td>
             <td>${c.customerID}</td>
             <td>${c.name}</td>
@@ -112,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateBtn.innerText = "Update";
         updateBtn.onclick = () => {
             document.getElementById("town").value = c.town;
+            document.getElementById("place").value = c.place;
             document.getElementById("representative").value = c.representative;
             document.getElementById("customerID").value = c.customerID;
             document.getElementById("customerName").value = c.name;
@@ -172,6 +176,39 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ======================
+    // QUICK SUBMIT
+    // ======================
+    quickForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const customer = {
+            town: document.getElementById("quickTown").value,
+            place: document.getElementById("quickPlace").value,
+            representative: document.getElementById("quickRepresentative").value,
+            customerID: "C-" + Date.now(),
+            name: document.getElementById("quickCustomerName").value,
+            contactNo: document.getElementById("quickContactNo").value,
+            appointmentDate: document.getElementById("quickAppointmentDate").value,
+            orderStatus: "Free Check",
+            totalAmount: 0,
+            advancedPayment: 0,
+            remainingBalance: 0
+        };
+
+        await fetch(CUSTOMER_API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                type: "addCustomer",
+                data: customer
+            })
+        });
+
+        toast("Quick customer added");
+        quickForm.reset();
+        loadCustomers();
+    });
+
+    // ======================
     // SUBMIT
     // ======================
     form.addEventListener("submit", async (e) => {
@@ -187,6 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const customer = {
             town: document.getElementById("town").value,
+            place: document.getElementById("place").value,
             representative: document.getElementById("representative").value,
             customerID: document.getElementById("customerID").value,
             name: document.getElementById("customerName").value,

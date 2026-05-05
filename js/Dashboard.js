@@ -7,41 +7,34 @@ if (!dashboardUser) {
 if (dashboardUser.role !== "admin") {
     console.log("Cashier mode - limited access");
 }
+
 const DASHBOARD_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+let dashboardCustomers = [];
+let dashboardItems = [];
+let dashboardOrders = [];
+let dashboardPlaces = [];
+let yearlyRevenueChart = null;
+let monthlyRevenueChart = null;
 
 async function loadDashboard() {
-
     try {
-        const [customers, items, orders, dashboardData] = await Promise.all([
+        const [customers, items, orders, places, dashboardData] = await Promise.all([
             window.getCustomers(),
             window.getProducts(),
             window.getOrders(),
+            window.getPlaces ? window.getPlaces() : [],
             getDashboardData()
         ]);
 
-        const pendingCustomers = customers.filter(customer => {
-            const status = String(customer.orderStatus || customer["Order Status"] || "").toLowerCase();
-            return status && status !== "delivered";
-        });
+        dashboardCustomers = customers.map(normalizeCustomerRecord);
+        dashboardItems = items;
+        dashboardOrders = orders;
+        dashboardPlaces = places.map(normalizePlaceRecord);
 
-        setText("customers-count", dashboardData.customersCount ?? customers.length);
-        setText("items-count", dashboardData.productsCount ?? items.length);
-        setText("orders-count", dashboardData.totalOrders ?? orders.length);
-        setText("pending-count", dashboardData.pendingOrders ?? pendingCustomers.length);
-
-        // ======================
-        // TOP PRODUCTS CHART
-        // ======================
-        const topProducts = Array.isArray(dashboardData.topProducts) && dashboardData.topProducts.length
-            ? dashboardData.topProducts
-            : items.slice(0, 5).map(item => ({
-                name: item.pro_name || item.productName || item["Product Name"] || item.name || "Item",
-                count: Number(item.quantity || item.Quantity || 0)
-            }));
-        let labels = topProducts.map(p => p.name);
-        let values = topProducts.map(p => p.count);
-
-        renderBarChart(labels, values);
+        setupDashboardFilters(dashboardCustomers, dashboardPlaces);
+        applyDashboardFilters(dashboardData);
     } catch (error) {
         console.error("Dashboard load failed:", error);
     }
@@ -58,34 +51,399 @@ async function getDashboardData() {
     }
 }
 
+function setupDashboardFilters(customers, places) {
+    const representatives = unique([
+        ...customers.map(customer => customer.representative),
+        ...places.map(place => place.representative)
+    ]);
+    const placeNames = unique([
+        ...customers.map(customer => customer.place),
+        ...places.map(place => place.place)
+    ]);
+
+    fillSelect("dashboard-representative-filter", representatives, "All Representatives");
+    fillSelect("dashboard-place-filter", placeNames, "All Places");
+    fillSelect("dashboard-status-filter", unique(customers.map(customer => customer.orderStatus)), "All Status");
+    fillSelect("dashboard-year-filter", unique(customers.map(customer => getRecordYear(customer))).sort(), "All Years");
+
+    ["dashboard-representative-filter", "dashboard-place-filter", "dashboard-status-filter", "dashboard-year-filter", "dashboard-month-filter"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element && !element.dataset.bound) {
+            element.addEventListener("change", () => applyDashboardFilters());
+            element.dataset.bound = "true";
+        }
+    });
+
+    const clearButton = document.getElementById("dashboard-clear-filters");
+    if (clearButton && !clearButton.dataset.bound) {
+        clearButton.addEventListener("click", () => {
+            ["dashboard-representative-filter", "dashboard-place-filter", "dashboard-status-filter", "dashboard-year-filter", "dashboard-month-filter"].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.value = "";
+            });
+            applyDashboardFilters();
+        });
+        clearButton.dataset.bound = "true";
+    }
+}
+
+function fillSelect(id, values, firstLabel) {
+    const select = document.getElementById(id);
+    if (!select) return;
+
+    const currentValue = select.value;
+    select.innerHTML = `<option value="">${firstLabel}</option>`;
+
+    values.filter(Boolean).forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+    });
+
+    if ([...select.options].some(option => option.value === currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+function applyDashboardFilters(dashboardData = {}) {
+    const representative = getValue("dashboard-representative-filter");
+    const place = getValue("dashboard-place-filter");
+    const status = getValue("dashboard-status-filter");
+    const year = getValue("dashboard-year-filter");
+    const month = getValue("dashboard-month-filter");
+
+    const filtered = dashboardCustomers.filter(customer => {
+        const date = getRecordDate(customer);
+        const matchesRepresentative = !representative || customer.representative === representative;
+        const matchesPlace = !place || customer.place === place;
+        const matchesStatus = !status || customer.orderStatus === status;
+        const matchesYear = !year || (date && String(date.getFullYear()) === year);
+        const matchesMonth = month === "" || (date && String(date.getMonth()) === month);
+        return matchesRepresentative && matchesPlace && matchesStatus && matchesYear && matchesMonth;
+    });
+    const filteredPlaces = dashboardPlaces.filter(placeItem => {
+        const date = getPlacePlanningDate(placeItem);
+        const matchesRepresentative = !representative || placeItem.representative === representative;
+        const matchesPlace = !place || placeItem.place === place;
+        const matchesYear = !year || (date && String(date.getFullYear()) === year);
+        const matchesMonth = month === "" || (date && String(date.getMonth()) === month);
+        return matchesRepresentative && matchesPlace && matchesYear && matchesMonth;
+    });
+
+    const pendingCustomers = filtered.filter(customer => !isCompleteStatus(customer.orderStatus));
+    const completeCustomers = filtered.filter(customer => isCompleteStatus(customer.orderStatus));
+    const totalRevenue = sumRevenue(filtered);
+
+    setText("customers-count", filtered.length);
+    setText("items-count", dashboardData.productsCount ?? dashboardItems.length);
+    setText("orders-count", dashboardData.totalOrders ?? dashboardOrders.length);
+    setText("pending-count", pendingCustomers.length);
+    setText("completed-count", `${completeCustomers.length} Complete`);
+    setText("filtered-revenue", formatCurrency(totalRevenue));
+
+    renderAppointmentList(filtered, filteredPlaces);
+    renderRepresentativeRevenue(filtered);
+    renderStatusSummary(filtered);
+    renderYearlyRevenueChart(filtered);
+    renderMonthlyRevenueChart(filtered, year || String(new Date().getFullYear()));
+    renderMonthlyRevenueList(filtered);
+}
+
+function renderAppointmentList(customers, places) {
+    const list = document.getElementById("appointment-list");
+    if (!list) return;
+
+    const today = startOfDay(new Date());
+    const customerAppointments = customers
+        .filter(customer => {
+            const date = getRecordDate(customer);
+            return date && startOfDay(date) >= today && !isCompleteStatus(customer.orderStatus);
+        })
+        .map(customer => ({
+            type: "Customer",
+            title: customer.place || customer.town || "No place",
+            detail: `${customer.name || "Customer"} - ${customer.town || "No town"} - ${customer.representative || "No representative"}`,
+            date: getRecordDate(customer)
+        }));
+
+    const placeNotes = places
+        .flatMap(placeItem => [
+            {
+                type: "Discussion",
+                title: placeItem.place || placeItem.town || "No place",
+                detail: `${placeItem.town || "No town"} - ${placeItem.representative || "No representative"}`,
+                date: placeItem.discussionDate
+            },
+            {
+                type: "Decided",
+                title: placeItem.place || placeItem.town || "No place",
+                detail: `${placeItem.town || "No town"} - ${placeItem.representative || "No representative"}`,
+                date: placeItem.decidedDate
+            }
+        ])
+        .filter(note => note.date && startOfDay(note.date) >= today);
+
+    const appointments = [...customerAppointments, ...placeNotes]
+        .sort((a, b) => a.date - b.date)
+        .slice(0, 8);
+
+    setText("meeting-count", appointments.length);
+
+    if (!appointments.length) {
+        list.innerHTML = `<div class="empty-state">No upcoming meetings for the selected filters.</div>`;
+        return;
+    }
+
+    list.innerHTML = appointments.map(customer => `
+        <div class="appointment-item">
+            <div>
+                <strong>${escapeHtml(customer.title)}</strong>
+                <span>${escapeHtml(customer.type)} - ${escapeHtml(customer.detail)}</span>
+            </div>
+            <time>${formatDate(customer.date)}</time>
+        </div>
+    `).join("");
+}
+
+function renderRepresentativeRevenue(customers) {
+    const list = document.getElementById("representative-revenue-list");
+    if (!list) return;
+
+    const totals = groupSum(customers, customer => customer.representative || "Unassigned", customer => customer.totalAmount);
+    const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+    if (!rows.length) {
+        list.innerHTML = `<div class="empty-state">No revenue for the selected filters.</div>`;
+        return;
+    }
+
+    list.innerHTML = rows.map(([name, amount]) => `
+        <div class="metric-row">
+            <span>${escapeHtml(name)}</span>
+            <strong>${formatCurrency(amount)}</strong>
+        </div>
+    `).join("");
+}
+
+function renderStatusSummary(customers) {
+    const list = document.getElementById("status-summary-list");
+    if (!list) return;
+
+    const totals = groupCount(customers, customer => customer.orderStatus || "No Status");
+    const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+    if (!rows.length) {
+        list.innerHTML = `<div class="empty-state">No statuses for the selected filters.</div>`;
+        return;
+    }
+
+    list.innerHTML = rows.map(([name, count]) => `
+        <div class="metric-row">
+            <span>${escapeHtml(name)}</span>
+            <strong>${count}</strong>
+        </div>
+    `).join("");
+}
+
+function renderMonthlyRevenueList(customers) {
+    const list = document.getElementById("monthly-revenue-list");
+    if (!list) return;
+
+    const monthlyTotals = Array(12).fill(0);
+
+    customers.forEach(customer => {
+        const date = getRecordDate(customer);
+        if (date) monthlyTotals[date.getMonth()] += customer.totalAmount;
+    });
+
+    const rows = monthlyTotals
+        .map((amount, index) => ({ month: MONTH_NAMES[index], amount }))
+        .filter(row => row.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
+
+    if (!rows.length) {
+        setText("best-month", "No Data");
+        list.innerHTML = `<div class="empty-state">No monthly revenue for the selected filters.</div>`;
+        return;
+    }
+
+    setText("best-month", `${rows[0].month} ${formatCurrency(rows[0].amount)}`);
+    list.innerHTML = rows.map(row => `
+        <div class="metric-row">
+            <span>${row.month}</span>
+            <strong>${formatCurrency(row.amount)}</strong>
+        </div>
+    `).join("");
+}
+
+function renderYearlyRevenueChart(customers) {
+    const yearly = groupSum(customers.filter(customer => getRecordYear(customer)), getRecordYear, customer => customer.totalAmount);
+    const labels = Object.keys(yearly).sort();
+    const values = labels.map(label => yearly[label]);
+
+    yearlyRevenueChart = renderChart(yearlyRevenueChart, "#bar-chart", {
+        series: [{ name: "Revenue", data: values }],
+        chart: { type: "bar", height: 350, toolbar: { show: false } },
+        colors: ["#0f766e"],
+        dataLabels: { enabled: false },
+        xaxis: { categories: labels },
+        yaxis: { labels: { formatter: value => "Rs " + Math.round(value) } },
+        noData: { text: "No yearly revenue data" }
+    });
+}
+
+function renderMonthlyRevenueChart(customers, selectedYear) {
+    const yearCustomers = customers.filter(customer => {
+        const year = getRecordYear(customer);
+        return year && String(year) === String(selectedYear);
+    });
+    const monthly = Array(12).fill(0);
+
+    yearCustomers.forEach(customer => {
+        const date = getRecordDate(customer);
+        if (date) monthly[date.getMonth()] += customer.totalAmount;
+    });
+
+    monthlyRevenueChart = renderChart(monthlyRevenueChart, "#area-chart", {
+        series: [{ name: `${selectedYear} Revenue`, data: monthly }],
+        chart: { type: "area", height: 350, toolbar: { show: false } },
+        colors: ["#d59f32"],
+        dataLabels: { enabled: false },
+        stroke: { curve: "smooth", width: 3 },
+        xaxis: { categories: MONTH_NAMES },
+        yaxis: { labels: { formatter: value => "Rs " + Math.round(value) } },
+        noData: { text: "No monthly revenue data" }
+    });
+}
+
+function renderChart(existingChart, selector, options) {
+    const element = document.querySelector(selector);
+    if (!element) return existingChart;
+
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    const chart = new ApexCharts(element, options);
+    chart.render();
+    return chart;
+}
+
+function normalizeCustomerRecord(customer) {
+    return {
+        town: customer.town || customer.Town || "",
+        place: customer.place || customer.Place || "",
+        representative: customer.representative || customer.Representative || "",
+        customerID: customer.customerID || customer.customerId || customer["Customer ID"] || "",
+        name: customer.name || customer.Name || "",
+        appointmentDate: customer.appointmentDate || customer["Appointment Date"] || "",
+        orderStatus: customer.orderStatus || customer["Order Status"] || "",
+        totalAmount: parseAmount(customer.totalAmount || customer["Total Amount"]),
+        advancedPayment: parseAmount(customer.advancedPayment || customer["Advanced Payment"]),
+        remainingBalance: parseAmount(customer.remainingBalance || customer["Remaining Balance"])
+    };
+}
+
+function normalizePlaceRecord(placeItem) {
+    return {
+        town: placeItem.town || placeItem.Town || "",
+        place: placeItem.place || placeItem.Place || "",
+        representative: placeItem.representative || placeItem.Representative || "",
+        discussionDate: parseDate(placeItem.discussionDate || placeItem["Discussion Date"]),
+        decidedDate: parseDate(placeItem.decidedDate || placeItem["Decided Date"])
+    };
+}
+
+function parseAmount(value) {
+    const parsed = Number(String(value ?? "0").replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getRecordDate(customer) {
+    return parseDate(customer.appointmentDate);
+}
+
+function parseDate(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getPlacePlanningDate(placeItem) {
+    return placeItem.decidedDate || placeItem.discussionDate;
+}
+
+function getRecordYear(customer) {
+    const date = getRecordDate(customer);
+    return date ? date.getFullYear() : "";
+}
+
+function isCompleteStatus(status) {
+    const normalized = String(status || "").toLowerCase();
+    return ["complete", "completed", "delivered", "done", "closed"].includes(normalized);
+}
+
+function sumRevenue(customers) {
+    return customers.reduce((total, customer) => total + customer.totalAmount, 0);
+}
+
+function groupSum(items, keyFn, valueFn) {
+    return items.reduce((groups, item) => {
+        const key = keyFn(item);
+        if (!key) return groups;
+        groups[key] = (groups[key] || 0) + Number(valueFn(item) || 0);
+        return groups;
+    }, {});
+}
+
+function groupCount(items, keyFn) {
+    return items.reduce((groups, item) => {
+        const key = keyFn(item) || "Unknown";
+        groups[key] = (groups[key] || 0) + 1;
+        return groups;
+    }, {});
+}
+
+function unique(values) {
+    return [...new Set(values.filter(Boolean))].sort();
+}
+
+function startOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function getValue(id) {
+    const element = document.getElementById(id);
+    return element ? element.value : "";
+}
+
 function setText(id, value) {
     const element = document.getElementById(id);
     if (element) element.innerText = value;
 }
 
+function formatCurrency(value) {
+    return "Rs " + Math.round(Number(value || 0)).toLocaleString("en-US");
+}
 
-// ======================
-// CHART UPDATE
-// ======================
-function renderBarChart(labels, values) {
+function formatDate(date) {
+    if (!date) return "";
+    return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+}
 
-    const options = {
-        series: [{
-            name: "Sales",
-            data: values
-        }],
-        chart: {
-            type: "bar",
-            height: 350
-        },
-        xaxis: {
-            categories: labels
-        }
-    };
-
-    document.querySelector("#bar-chart").innerHTML = "";
-
-    new ApexCharts(document.querySelector("#bar-chart"), options).render();
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
 }
 
 loadDashboard();

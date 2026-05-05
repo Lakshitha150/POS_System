@@ -54,6 +54,11 @@ async function getOrders() {
     return await readJsonResponse(res);
 }
 
+async function getPlaces() {
+    const res = await fetch(window.API_URL + "?type=places");
+    return await readJsonResponse(res);
+}
+
 // ======================
 // SAVE ORDER
 // ======================
@@ -70,4 +75,5 @@ window.getProducts = getProducts;
 window.getCustomers = getCustomers;
 window.getOrderId = getOrderId;
 window.getOrders = getOrders;
+window.getPlaces = getPlaces;
 window.saveOrder = saveOrder;

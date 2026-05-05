@@ -43,6 +43,44 @@
     color: white;
 }
 
+.quick-customer-form {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(130px, 1fr)) auto;
+    gap: 10px;
+    align-items: center;
+    margin: 18px 22px 0;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(18, 52, 59, 0.08);
+}
+
+.quick-customer-form input {
+    height: 38px;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d7e8e6;
+    color: #12343b;
+    background: #f5faf9;
+}
+
+.quick-customer-form button {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 8px;
+    color: white;
+    background: #0f766e;
+    border: 1px solid #0f766e;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.quick-customer-form button:hover {
+    background: #12343b;
+}
+
 .customerRegisterForm {
     display: none;
     position: fixed;
@@ -219,4 +257,36 @@
 
 .toast.error {
     background-color: rgb(218, 82, 82);
+}
+
+@media (max-width: 900px) {
+    .customerHeader-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .quick-customer-form,
+    .customer-form {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-customer-form {
+        margin: 14px 0 0;
+    }
+
+    .customer-form button {
+        grid-column: 1;
+    }
+
+    .registerForm {
+        margin: 14px auto;
+        width: calc(100vw - 24px);
+        max-height: 90vh;
+    }
+
+    .customer-table {
+        margin-left: 0;
+        min-width: 1800px;
+    }
 }

@@ -3,6 +3,7 @@ const SPREADSHEET_ID = "1z9stN8WtqIDOJ1BG4vKPMfpKNNj7KQVAWLIYMj857fU";
 const SHEETS = {
   products: "Products",
   customers: "Customers",
+  places: "Place",
   orders: "Orders"
 };
 
@@ -17,6 +18,7 @@ function doGet(e) {
   });
   if (type === "products" || type === "product") return json(readSheetObjects(SHEETS.products));
   if (type === "customers" || type === "customer") return json(readSheetObjects(SHEETS.customers));
+  if (type === "places" || type === "place") return json(readSheetObjects(SHEETS.places));
   if (type === "orders" || type === "order") return json(readSheetObjects(SHEETS.orders));
   if (type === "orderid") return text("ORD-" + Date.now());
   if (type === "dashboard") return json(getDashboardData());
@@ -61,7 +63,10 @@ function normalizeItem(item) {
   return {
     ...item,
     town: item.town || item.Town,
+    place: item.place || item.Place,
     representative: item.representative || item.Representative,
+    discussionDate: item.discussionDate || item["Discussion Date"],
+    decidedDate: item.decidedDate || item["Decided Date"],
     customerID: item.customerID || item.customerId || item["Customer ID"],
     name: item.name || item.Name,
     age: item.age || item.Age,
@@ -151,6 +156,7 @@ function productRow(data) {
 function customerRow(data) {
   return [
     data.town,
+    data.place,
     data.representative,
     data.customerID,
     data.name,
@@ -229,6 +235,10 @@ function getSheet(name) {
 
   if (name === SHEETS.products) {
     candidates.push("Inventory", "inventory", "Frames", "frames", "Lenses", "lenses", "Frames & Lenses");
+  }
+
+  if (name === SHEETS.places) {
+    candidates.push("Place", "place", "PLACE", "Places", "places", "PLACES");
   }
 
   for (let i = 0; i < candidates.length; i++) {
