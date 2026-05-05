@@ -4,6 +4,22 @@ function showSection(sectionId) {
     });
 }
 
+function setActiveNav(buttonId) {
+    document.querySelectorAll(".navigation ul li").forEach(item => {
+        item.classList.remove("hovered");
+    });
+
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.closest("li").classList.add("hovered");
+    }
+}
+
+function openSection(sectionId, buttonId) {
+    showSection(sectionId);
+    setActiveNav(buttonId);
+}
+
 function showToast(message, type = "success") {
     const toast = document.getElementById("toast");
     toast.className = "toast " + type + " show";
@@ -12,19 +28,19 @@ function showToast(message, type = "success") {
 }
 
 document.getElementById("Dashboard-button").addEventListener("click", function () {
-    showSection("DashboardForm");
+    openSection("DashboardForm", "Dashboard-button");
 });
 
 document.getElementById("CustomerForm-button").addEventListener("click", function () {
-    showSection("CustomerForm");
+    openSection("CustomerForm", "CustomerForm-button");
 });
 
 document.getElementById("ProductsForm-button").addEventListener("click", function () {
-    showSection("ProductsForm");
+    openSection("ProductsForm", "ProductsForm-button");
 });
 
 document.getElementById("OrdersForm-button").addEventListener("click", function () {
-    showSection("OrdersForm");
+    openSection("OrdersForm", "OrdersForm-button");
 });
 
 document.querySelector(".toggle").addEventListener("click", function () {
@@ -53,15 +69,15 @@ document.getElementById("SignOutForm-button").addEventListener("click", function
 });
 
 document.getElementById("customer").addEventListener("click", function (){
-    showSection("CustomerForm");
+    openSection("CustomerForm", "CustomerForm-button");
 });
 
 document.getElementById("product").addEventListener("click", function (){
-    showSection("ProductsForm");
+    openSection("ProductsForm", "ProductsForm-button");
 });
 
 document.getElementById("orders").addEventListener("click", function (){
-    showSection("OrdersForm");
+    openSection("OrdersForm", "OrdersForm-button");
 });
 
 const navigationUser = JSON.parse(localStorage.getItem("user"));
