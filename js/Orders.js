@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
             c = normalizeCustomer(c);
             const opt = document.createElement("option");
             opt.value = c.custContact;
-            opt.textContent = c.custContact;
+            opt.textContent = c.custName ? `${c.custName} - ${c.custContact}` : c.custContact;
             customerSelect.appendChild(opt);
         });
     }
@@ -74,7 +74,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function normalizeCustomer(c) {
         return {
-            custContact: c.custContact || c.customerNumber || c.contact || c.mobile || c["Contact Number"] || c["Mobile Number"] || ""
+            custName: c.name || c.Name || c.custName || c.customerName || "",
+            custContact: c.contactNo || c.custContact || c.customerNumber || c.contact || c.mobile || c["Contact No"] || c["Contact Number"] || c["Mobile Number"] || ""
         };
     }
 

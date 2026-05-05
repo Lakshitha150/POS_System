@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btn = document.getElementById("customer-submit");
 
     let isUpdate = false;
-    let currentContact = null;
+    let currentPatientId = null;
 
     // ======================
     // TOAST
@@ -29,14 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // ======================
     document.getElementById("add-customer").onclick = () => {
         popup.style.display = "block";
-        title.innerText = "Add Customer";
+        title.innerText = "Add Patient";
     };
 
     document.getElementById("customerRegisterForm-close").onclick = () => {
         popup.style.display = "none";
         form.reset();
         isUpdate = false;
-        currentContact = null;
+        currentPatientId = null;
         btn.innerText = "Submit";
     };
 
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         table.innerHTML = "";
 
         if (!customerDataList.length) {
-            table.innerHTML = `<tr><td colspan="6">No customers found. Check the Google Apps Script deployment.</td></tr>`;
+            table.innerHTML = `<tr><td colspan="17">No patients found. Check the Google Apps Script deployment.</td></tr>`;
             return;
         }
 
@@ -58,11 +58,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function normalizeCustomer(c) {
         return {
-            custId: c.custId || c.customerID || c.customerId || c.id || c["Customer ID"] || "",
-            custName: c.custName || c.customerName || c.name || c["Name"] || c["Full Name"] || "",
-            custAddress: c.custAddress || c.customerAddress || c.address || c["Address"] || "",
-            custContact: c.custContact || c.customerNumber || c.contact || c.mobile || c["Contact Number"] || c["Mobile Number"] || ""
+            town: c.town || c.Town || "",
+            representative: c.representative || c.Representative || "",
+            patientID: c.patientID || c.patientId || c["Patient ID"] || c.custId || c.customerID || "",
+            name: c.name || c.Name || c.custName || c.customerName || "",
+            age: c.age || c.Age || "",
+            birthday: formatDate(c.birthday || c.Birthday || ""),
+            contactNo: c.contactNo || c.contact || c["Contact No"] || c["Contact Number"] || c.custContact || "",
+            appointmentDate: formatDate(c.appointmentDate || c["Appointment Date"] || ""),
+            prescription: c.prescription || c.Prescription || "",
+            frameType: c.frameType || c["Frame Type"] || "",
+            lensType: c.lensType || c["Lens Type"] || "",
+            totalAmount: c.totalAmount || c["Total Amount"] || "",
+            advancedPayment: c.advancedPayment || c["Advanced Payment"] || "",
+            remainingBalance: c.remainingBalance || c["Remaining Balance"] || "",
+            orderStatus: c.orderStatus || c["Order Status"] || ""
         };
+    }
+
+    function formatDate(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toISOString().slice(0, 10);
     }
 
     // ======================
@@ -72,26 +90,48 @@ document.addEventListener("DOMContentLoaded", function () {
         const row = document.createElement("tr");
 
         row.innerHTML = `
-            <td>${c.custId}</td>
-            <td>${c.custName}</td>
-            <td>${c.custAddress}</td>
-            <td>${c.custContact}</td>
+            <td>${c.town}</td>
+            <td>${c.representative}</td>
+            <td>${c.patientID}</td>
+            <td>${c.name}</td>
+            <td>${c.age}</td>
+            <td>${c.birthday}</td>
+            <td>${c.contactNo}</td>
+            <td>${c.appointmentDate}</td>
+            <td>${c.prescription}</td>
+            <td>${c.frameType}</td>
+            <td>${c.lensType}</td>
+            <td>${c.totalAmount}</td>
+            <td>${c.advancedPayment}</td>
+            <td>${c.remainingBalance}</td>
+            <td>${c.orderStatus}</td>
         `;
 
         // UPDATE
         const updateBtn = document.createElement("button");
         updateBtn.innerText = "Update";
         updateBtn.onclick = () => {
-            document.getElementById("customerID").value = c.custId;
-            document.getElementById("customerName").value = c.custName;
-            document.getElementById("customerAddress").value = c.custAddress;
-            document.getElementById("customerNumber").value = c.custContact;
+            document.getElementById("town").value = c.town;
+            document.getElementById("representative").value = c.representative;
+            document.getElementById("patientID").value = c.patientID;
+            document.getElementById("patientName").value = c.name;
+            document.getElementById("age").value = c.age;
+            document.getElementById("birthday").value = c.birthday;
+            document.getElementById("contactNo").value = c.contactNo;
+            document.getElementById("appointmentDate").value = c.appointmentDate;
+            document.getElementById("prescription").value = c.prescription;
+            document.getElementById("frameType").value = c.frameType;
+            document.getElementById("lensType").value = c.lensType;
+            document.getElementById("totalAmount").value = c.totalAmount;
+            document.getElementById("advancedPayment").value = c.advancedPayment;
+            document.getElementById("remainingBalance").value = c.remainingBalance;
+            document.getElementById("orderStatus").value = c.orderStatus;
 
             popup.style.display = "block";
-            title.innerText = "Update Customer";
+            title.innerText = "Update Patient";
 
             isUpdate = true;
-            currentContact = c.custContact;
+            currentPatientId = c.patientID;
             btn.innerText = "Update";
         };
 
@@ -99,17 +139,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerText = "Delete";
         deleteBtn.onclick = async () => {
-            if (!confirm("Delete this customer?")) return;
+            if (!confirm("Delete this patient record?")) return;
 
             await fetch(CUSTOMER_API_URL, {
                 method: "POST",
                 body: JSON.stringify({
                     type: "deleteCustomer",
-                    data: { custContact: c.custContact }
+                    data: { patientID: c.patientID }
                 })
             });
 
-            toast("Customer Deleted");
+            toast("Patient Deleted");
             loadCustomers();
         };
 
@@ -137,12 +177,31 @@ document.addEventListener("DOMContentLoaded", function () {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const totalAmount = Number(document.getElementById("totalAmount").value) || 0;
+        const advancedPayment = Number(document.getElementById("advancedPayment").value) || 0;
+        const remainingBalance = document.getElementById("remainingBalance");
+
+        if (!remainingBalance.value) {
+            remainingBalance.value = totalAmount - advancedPayment;
+        }
+
         const customer = {
-            custId: document.getElementById("customerID").value,
-            custName: document.getElementById("customerName").value,
-            custAddress: document.getElementById("customerAddress").value,
-            custContact: document.getElementById("customerNumber").value,
-            originalCustContact: currentContact
+            town: document.getElementById("town").value,
+            representative: document.getElementById("representative").value,
+            patientID: document.getElementById("patientID").value,
+            name: document.getElementById("patientName").value,
+            age: document.getElementById("age").value,
+            birthday: document.getElementById("birthday").value,
+            contactNo: document.getElementById("contactNo").value,
+            appointmentDate: document.getElementById("appointmentDate").value,
+            prescription: document.getElementById("prescription").value,
+            frameType: document.getElementById("frameType").value,
+            lensType: document.getElementById("lensType").value,
+            totalAmount: totalAmount,
+            advancedPayment: advancedPayment,
+            remainingBalance: Number(remainingBalance.value) || 0,
+            orderStatus: document.getElementById("orderStatus").value,
+            originalPatientID: currentPatientId
         };
 
         const type = isUpdate ? "updateCustomer" : "addCustomer";
@@ -160,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
         popup.style.display = "none";
         form.reset();
         isUpdate = false;
+        currentPatientId = null;
         btn.innerText = "Submit";
 
         loadCustomers();

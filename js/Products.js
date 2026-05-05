@@ -30,7 +30,7 @@ $(document).ready(function () {
     // ======================
     $("#add-product").on("click", () => {
         $popup.show();
-        $title.text("Add Product");
+        $title.text("Add Item");
     });
 
     $("#productRegisterForm-close").on("click", () => {
@@ -94,7 +94,7 @@ $(document).ready(function () {
                 currentId = p.pro_id;
 
                 $popup.show();
-                $title.text("Update Product");
+                $title.text("Update Item");
                 $btn.text("Update");
             });
 

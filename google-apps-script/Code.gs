@@ -1,14 +1,22 @@
+const SPREADSHEET_ID = "1z9stN8WtqIDOJ1BG4vKPMfpKNNj7KQVAWLIYMj857fU";
+
 const SHEETS = {
   products: "Products",
-  customers: "Customers",
+  customers: "Patients",
   orders: "Orders"
 };
 
 function doGet(e) {
   const type = String(e.parameter.type || "").toLowerCase();
 
-  if (type === "products") return json(readSheetObjects(SHEETS.products));
-  if (type === "customers") return json(readSheetObjects(SHEETS.customers));
+  if (type === "ping") return json({ success: true, message: "POS API is running" });
+  if (type === "debug") return json({
+    success: true,
+    parameters: e.parameter,
+    sheets: getSpreadsheet().getSheets().map(sheet => sheet.getName())
+  });
+  if (type === "products" || type === "product") return json(readSheetObjects(SHEETS.products));
+  if (type === "customers" || type === "customer" || type === "patients" || type === "patient") return json(readSheetObjects(SHEETS.customers));
   if (type === "orderid") return text("ORD-" + Date.now());
   if (type === "dashboard") return json(getDashboardData());
 
@@ -25,8 +33,8 @@ function doPost(e) {
   if (type === "deleteproduct") return json(deleteRow(SHEETS.products, ["pro_id", "productID", "Product ID"], data.pro_id));
 
   if (type === "addcustomer") return json(addRow(SHEETS.customers, customerRow(data)));
-  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["custContact", "customerNumber", "Contact Number", "Mobile Number"], data.originalCustContact || data.custContact, customerRow(data)));
-  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["custContact", "customerNumber", "Contact Number", "Mobile Number"], data.custContact));
+  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["patientID", "Patient ID"], data.originalPatientID || data.patientID, customerRow(data)));
+  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["patientID", "Patient ID"], data.patientID));
 
   if (type === "order") return json(addRow(SHEETS.orders, orderRow(data)));
 
@@ -51,6 +59,21 @@ function readSheetObjects(sheetName) {
 function normalizeItem(item) {
   return {
     ...item,
+    town: item.town || item.Town,
+    representative: item.representative || item.Representative,
+    patientID: item.patientID || item.patientId || item["Patient ID"],
+    name: item.name || item.Name,
+    age: item.age || item.Age,
+    birthday: item.birthday || item.Birthday,
+    contactNo: item.contactNo || item["Contact No"] || item.Contact,
+    appointmentDate: item.appointmentDate || item["Appointment Date"],
+    prescription: item.prescription || item.Prescription,
+    frameType: item.frameType || item["Frame Type"],
+    lensType: item.lensType || item["Lens Type"],
+    totalAmount: item.totalAmount || item["Total Amount"],
+    advancedPayment: item.advancedPayment || item["Advanced Payment"],
+    remainingBalance: item.remainingBalance || item["Remaining Balance"],
+    orderStatus: item.orderStatus || item["Order Status"],
     custId: item.custId || item.customerID || item["Customer ID"],
     custName: item.custName || item.customerName || item.Name || item["Full Name"],
     custAddress: item.custAddress || item.customerAddress || item.Address,
@@ -125,7 +148,23 @@ function productRow(data) {
 }
 
 function customerRow(data) {
-  return [data.custId, data.custName, data.custAddress, data.custContact];
+  return [
+    data.town,
+    data.representative,
+    data.patientID,
+    data.name,
+    data.age,
+    data.birthday,
+    data.contactNo,
+    data.appointmentDate,
+    data.prescription,
+    data.frameType,
+    data.lensType,
+    data.totalAmount,
+    data.advancedPayment,
+    data.remainingBalance,
+    data.orderStatus
+  ];
 }
 
 function orderRow(data) {
@@ -158,7 +197,7 @@ function getDashboardData() {
 }
 
 function getSheet(name) {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = getSpreadsheet();
   const candidates = [
     name,
     name.toLowerCase(),
@@ -167,12 +206,28 @@ function getSheet(name) {
     name.toLowerCase().slice(0, -1)
   ];
 
+  if (name === SHEETS.customers) {
+    candidates.push("Customers", "customers", "CUSTOMERS", "Patients", "patients", "PATIENTS");
+  }
+
+  if (name === SHEETS.products) {
+    candidates.push("Inventory", "inventory", "Frames", "frames", "Lenses", "lenses", "Frames & Lenses");
+  }
+
   for (let i = 0; i < candidates.length; i++) {
     const sheet = spreadsheet.getSheetByName(candidates[i]);
     if (sheet) return sheet;
   }
 
   throw new Error("Sheet not found: " + name);
+}
+
+function getSpreadsheet() {
+  if (SPREADSHEET_ID) {
+    return SpreadsheetApp.openById(SPREADSHEET_ID);
+  }
+
+  return SpreadsheetApp.getActiveSpreadsheet();
 }
 
 function json(data) {
