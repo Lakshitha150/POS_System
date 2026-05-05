@@ -4,6 +4,14 @@ function showSection(sectionId) {
     });
 }
 
+function hideAppLoader() {
+    const loader = document.getElementById("app-loader");
+    if (!loader) return;
+
+    loader.classList.add("hidden");
+    setTimeout(() => loader.remove(), 500);
+}
+
 function setActiveNav(buttonId) {
     document.querySelectorAll(".navigation ul li").forEach(item => {
         item.classList.remove("hovered");
@@ -90,3 +98,5 @@ const navigationUser = JSON.parse(localStorage.getItem("user"));
 if (navigationUser && navigationUser.role !== "admin") {
     document.getElementById("CustomerForm-button").style.display = "none";
 }
+
+setTimeout(hideAppLoader, 3000);

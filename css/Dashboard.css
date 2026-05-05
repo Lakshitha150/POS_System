@@ -27,6 +27,80 @@ body
 	background: var(--surface);
 }
 
+.app-loader
+{
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #12343b;
+	opacity: 1;
+	transition: opacity 0.45s ease, visibility 0.45s ease;
+	visibility: visible;
+}
+
+.app-loader.hidden
+{
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.loader-panel
+{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	width: min(320px, calc(100vw - 48px));
+	color: var(--white);
+	text-align: center;
+}
+
+.loader-panel img
+{
+	width: 86px;
+	height: 86px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 3px solid var(--brown);
+	box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+.loader-panel h1
+{
+	font-size: 1.55rem;
+	line-height: 1.2;
+}
+
+.loader-bar
+{
+	width: 100%;
+	height: 8px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.16);
+}
+
+.loader-bar span
+{
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--brown);
+	transform-origin: left;
+	animation: loaderFill 3s linear forwards;
+}
+
+@keyframes loaderFill
+{
+	from { transform: scaleX(0); }
+	to { transform: scaleX(1); }
+}
+
 /* ----------------- Navigation Bar ----------------- */
 .logo
 {
