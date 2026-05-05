@@ -332,6 +332,32 @@
     <script src="/js/Customer.js"></script>
     <script src="/js/Products.js"></script>
     <script src="/js/Orders.js"></script>
+
+
+    <div id="invoice-modal" style="display:none;">
+    <div id="invoice-content">
+        <h2>COFFEE SHOP POS</h2>
+
+        <p id="inv-order-id"></p>
+        <p id="inv-date"></p>
+        <p id="inv-customer"></p>
+
+        <hr>
+
+        <div id="inv-items"></div>
+
+        <hr>
+
+        <p id="inv-subtotal"></p>
+        <p id="inv-discount"></p>
+        <p id="inv-total"></p>
+        <p id="inv-cash"></p>
+        <p id="inv-balance"></p>
+
+        <button onclick="window.print()">Print</button>
+        <button onclick="closeInvoice()">Close</button>
+    </div>
+</div>
     
 
 </body>

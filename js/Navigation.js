@@ -27,8 +27,18 @@ document.getElementById("OrdersForm-button").addEventListener("click", function 
 });
 
 document.getElementById("SignOutForm-button").addEventListener("click", function () {
-    // Confirm logout
+
     const confirmLogout = confirm("Are you sure you want to log out?");
+
+    if (confirmLogout) {
+        // clear session
+        localStorage.removeItem("user");
+
+        // redirect to login page
+        window.location.href = "loginRegister.html";
+    }
+
+});
     
     // If the user confirms, proceed with logout
     if (confirmLogout) {
@@ -59,4 +69,10 @@ document.getElementById("orders").addEventListener("click", function (){
     document.getElementById("DashboardForm").style.display = "none";
     document.getElementById("OrdersForm").style.display = "block";
 });
+
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (user.role !== "admin") {
+    document.getElementById("CustomerForm-button").style.display = "none";
+}
   

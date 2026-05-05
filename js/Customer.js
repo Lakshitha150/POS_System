@@ -1,383 +1,157 @@
-// $(document).ready(function() {
-//     const $customerRegisterForm = $("#customerRegisterForm");
-//     const $customerForm = $("#customer-form");
-//     const $customerButton = $("#customer-submit");
-//     const $customerTableList = $("#customer-table-list");
-//     const $registerTitle = $("#registerTitle");
-//     let isUpdateMode = false;
-//     let currentCustomerContact = null;
+const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
-//     const showToast = (message, type = "success") => {
-//         const $toast = $("#toast");
-//         $toast.removeClass("success error");
-//         $toast.addClass(type);
-//         $toast.text(message);
-//         $toast.addClass("show");
-//         setTimeout(() => {
-//             $toast.removeClass("show");
-//         }, 3000);
-//     };
+let customerDataList = [];
 
-//     const openCustomerRegisterForm = () => {
-//         $customerRegisterForm.show();
-//         $registerTitle.text("Register Customer");
-//     };
+document.addEventListener("DOMContentLoaded", function () {
 
-//     const closeCustomerRegisterForm = () => {
-//         $customerRegisterForm.hide();
-//         $customerForm[0].reset();
-//         $customerButton.text("Submit");
-//         isUpdateMode = false;
-//         currentCustomerContact = null;
-//     };
+    const table = document.getElementById("customer-table-list");
+    const form = document.getElementById("customer-form");
+    const popup = document.getElementById("customerRegisterForm");
+    const title = document.getElementById("registerTitle");
+    const btn = document.getElementById("customer-submit");
 
-//     $("#add-customer").on("click", openCustomerRegisterForm);
-//     $("#customerRegisterForm-close").on("click", closeCustomerRegisterForm);
+    let isUpdate = false;
+    let currentContact = null;
 
-//     $("#customer-submit").on("click", function() {
-//         $customerRegisterForm.hide();
-//     });
+    // ======================
+    // TOAST
+    // ======================
+    function toast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.className = "toast " + type + " show";
+        t.innerText = msg;
 
-//     const loadCustomersIntoTable = async () => {
-//         await loadCustomersDataFromBackend();
-//         $customerTableList.empty();
-//         customerDataList.forEach((customer) => {
-//             addCustomerDataToTable(customer, $customerTableList);
-//         });
-//     };
+        setTimeout(() => t.classList.remove("show"), 3000);
+    }
 
-//     const loadCustomersDataFromBackend = async () => {
-//         try {
-//             const response = await fetch("http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war_exploded/customer");
-//             if (!response.ok) {
-//                 throw new Error(`HTTP error! status: ${response.status}`);
-//             }
-//             const data = await response.json();
-//             customerDataList = data;
-//         } catch (error) {
-//             console.error("Error fetching customers:", error);
-//         }
-//     };
-
-//     const addCustomerDataToTable = (customer, table) => {
-//         const $row = $("<tr>");
-//         const nameList = ["custId", "custName", "custAddress", "custContact"];
-
-//         nameList.forEach((key) => {
-//             const $cell = $("<td>").text(customer[key]);
-//             $row.append($cell);
-//         });
-
-//         const $updateCell = $("<td>");
-//         const $updateButton = $("<button>").text("Update").addClass("action-button");
-//         $updateButton.on("click", () => {
-//             openCustomerRegisterForm();
-//             fillFormCustomerData(customer);
-//             $registerTitle.text("Update Customer");
-//             isUpdateMode = true;
-//             currentCustomerContact = customer.custContact;
-//             $customerButton.text("Update");
-//         });
-//         $updateCell.append($updateButton);
-//         $row.append($updateCell);
-
-//         const $removeCell = $("<td>");
-//         const $removeButton = $("<button>").text("Remove").addClass("action-button");
-//         $removeButton.on("click", async () => {
-//             const confirmation = confirm(`Are you sure you want to remove customer ${customer.custContact}?`);
-//             if (confirmation) {
-//                 try {
-//                     const response = await fetch(`http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war_exploded/customer?contact=${customer.custContact}`, {
-//                         method: "DELETE",
-//                     });
-
-//                     if (response.ok) {
-//                         $row.remove();
-//                         customerDataList = customerDataList.filter((c) => c.custContact !== customer.custContact);
-//                         showToast("Customer Deleted Successfully", "success");
-//                     } else {
-//                         const errorText = await response.text();
-//                         showToast(`Error removing customer: ${errorText}`, "error");
-//                     }
-//                 } catch (error) {
-//                     showToast("Error removing customer", "error");
-//                 }
-//             }
-//         });
-//         $removeCell.append($removeButton);
-//         $row.append($removeCell);
-//         table.append($row);
-//     };
-
-//     const fillFormCustomerData = (customer) => {
-//         $("#customerID").val(customer.custId);
-//         $("#customerName").val(customer.custName);
-//         $("#customerAddress").val(customer.custAddress);
-//         $("#customerNumber").val(customer.custContact);
-//     };
-
-//     const validatecustId = (custId) => /^C\d{3}$/.test(custId);
-//     const validatecustName = (custName) => /^[a-zA-Z\s]+$/.test(custName);
-//     const validatecustAddress = (custAddress) => custAddress.trim() !== "";
-//     const validatecustContact = (custContact) => /^[0-9]{10}$/.test(custContact);
-
-//     $customerForm.on("submit", async (event) => {
-//         event.preventDefault();
-
-//         const custId = $("#customerID").val();
-//         const custName = $("#customerName").val();
-//         const custAddress = $("#customerAddress").val();
-//         const custContact = $("#customerNumber").val();
-
-//         if (!validatecustId(custId)) {
-//             showToast("Customer ID Format 'C000'", "error");
-//             return;
-//         }
-//         if (!validatecustName(custName)) {
-//             showToast("Name must contain only letters", "error");
-//             return;
-//         }
-//         if (!validatecustAddress(custAddress)) {
-//             showToast("Address cannot be empty", "error");
-//             return;
-//         }
-//         if (!validatecustContact(custContact)) {
-//             showToast("Contact must be 10 digits numbers", "error");
-//             return;
-//         }
-
-//         const customerData = {
-//             custId,
-//             custName,
-//             custAddress,
-//             custContact,
-//         };
-
-//         try {
-//             let url = "http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war_exploded/customer";
-//             let method = isUpdateMode ? "PUT" : "POST";
-//             let successMessage = isUpdateMode ? "Customer Updated Successfully" : "Customer Added Successfully";
-
-//             if (isUpdateMode) {
-//                 url += `?custContact=${currentCustomerContact}`;
-//             }
-
-//             const response = await fetch(url, {
-//                 method: method,
-//                 headers: {
-//                     "Content-Type": "application/json",
-//                 },
-//                 body: JSON.stringify(customerData),
-//             });
-
-//             if (response.ok) {
-//                 showToast(successMessage, "success");
-//                 await loadCustomersIntoTable();
-//                 closeCustomerRegisterForm();
-//             } else {
-//                 const errorText = await response.text();
-//                 showToast(`Failed! Try again: ${errorText}`, "error");
-//             }
-//         } catch (error) {
-//             showToast("Error saving customer data", "error");
-//         }
-//     });
-
-//     loadCustomersIntoTable();
-// });
-
-
-document.addEventListener("DOMContentLoaded", function() {
-    const customerRegisterForm = document.getElementById("customerRegisterForm");
-    const customerForm = document.getElementById("customer-form");
-    const customerButton = document.getElementById("customer-submit");
-    const customerTableList = document.getElementById("customer-table-list");
-    const registerTitle = document.getElementById("registerTitle");
-    let isUpdateMode = false;
-    let currentCustomerContact = null;
-
-    const showToast = (message, type = "success") => {
-        const toast = document.getElementById("toast");
-        toast.classList.remove("success", "error");
-        toast.classList.add(type);
-        toast.textContent = message;
-        toast.classList.add("show");
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
+    // ======================
+    // OPEN FORM
+    // ======================
+    document.getElementById("add-customer").onclick = () => {
+        popup.style.display = "block";
+        title.innerText = "Add Customer";
     };
 
-    const openCustomerRegisterForm = () => {
-        customerRegisterForm.style.display = "block";
-        registerTitle.textContent = "Register Customer";
+    document.getElementById("customerRegisterForm-close").onclick = () => {
+        popup.style.display = "none";
+        form.reset();
+        isUpdate = false;
+        currentContact = null;
+        btn.innerText = "Submit";
     };
 
-    const closeCustomerRegisterForm = () => {
-        customerRegisterForm.style.display = "none";
-        customerForm.reset();
-        customerButton.textContent = "Submit";
-        isUpdateMode = false;
-        currentCustomerContact = null;
-    };
+    // ======================
+    // LOAD CUSTOMERS
+    // ======================
+    async function loadCustomers() {
+        const res = await fetch(API_URL + "?type=customers");
+        customerDataList = await res.json();
 
-    document.getElementById("add-customer").addEventListener("click", openCustomerRegisterForm);
-    document.getElementById("customerRegisterForm-close").addEventListener("click", closeCustomerRegisterForm);
+        table.innerHTML = "";
 
-    customerButton.addEventListener("click", function() {
-        customerRegisterForm.style.display = "none";
-    });
+        customerDataList.forEach(c => renderRow(c));
+    }
 
-    const loadCustomersIntoTable = async () => {
-        await loadCustomersDataFromBackend();
-        customerTableList.innerHTML = ""; // Clear the table
-        customerDataList.forEach((customer) => {
-            addCustomerDataToTable(customer, customerTableList);
-        });
-    };
-
-    let customerDataList = []; // To hold the customer data fetched from backend
-
-    const loadCustomersDataFromBackend = async () => {
-        try {
-            const response = await fetch("http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/customer");
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            customerDataList = data;
-        } catch (error) {
-            console.error("Error fetching customers:", error);
-        }
-    };
-
-    const addCustomerDataToTable = (customer, table) => {
+    // ======================
+    // RENDER ROW
+    // ======================
+    function renderRow(c) {
         const row = document.createElement("tr");
-        const nameList = ["custId", "custName", "custAddress", "custContact"];
 
-        nameList.forEach((key) => {
-            const cell = document.createElement("td");
-            cell.textContent = customer[key];
-            row.appendChild(cell);
-        });
+        row.innerHTML = `
+            <td>${c.custId}</td>
+            <td>${c.custName}</td>
+            <td>${c.custAddress}</td>
+            <td>${c.custContact}</td>
+        `;
 
-        const updateCell = document.createElement("td");
-        const updateButton = document.createElement("button");
-        updateButton.textContent = "Update";
-        updateButton.classList.add("action-button");
-        updateButton.addEventListener("click", () => {
-            openCustomerRegisterForm();
-            fillFormCustomerData(customer);
-            registerTitle.textContent = "Update Customer";
-            isUpdateMode = true;
-            currentCustomerContact = customer.custContact;
-            customerButton.textContent = "Update";
-        });
-        updateCell.appendChild(updateButton);
-        row.appendChild(updateCell);
+        // UPDATE
+        const updateBtn = document.createElement("button");
+        updateBtn.innerText = "Update";
+        updateBtn.onclick = () => {
+            document.getElementById("customerID").value = c.custId;
+            document.getElementById("customerName").value = c.custName;
+            document.getElementById("customerAddress").value = c.custAddress;
+            document.getElementById("customerNumber").value = c.custContact;
 
-        const removeCell = document.createElement("td");
-        const removeButton = document.createElement("button");
-        removeButton.textContent = "Remove";
-        removeButton.classList.add("action-button");
-        removeButton.addEventListener("click", async () => {
-            const confirmation = confirm(`Are you sure you want to remove customer ${customer.custContact}?`);
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/customer?contact=${customer.custContact}`, {
-                        method: "DELETE",
-                    });
+            popup.style.display = "block";
+            title.innerText = "Update Customer";
 
-                    if (response.ok) {
-                        row.remove();
-                        customerDataList = customerDataList.filter((c) => c.custContact !== customer.custContact);
-                        showToast("Customer Deleted Successfully", "success");
-                    } else {
-                        const errorText = await response.text();
-                        showToast(`Error removing customer: ${errorText}`, "error");
-                    }
-                } catch (error) {
-                    showToast("Error removing customer", "error");
-                }
-            }
-        });
-        removeCell.appendChild(removeButton);
-        row.appendChild(removeCell);
-        table.appendChild(row);
-    };
-
-    const fillFormCustomerData = (customer) => {
-        document.getElementById("customerID").value = customer.custId;
-        document.getElementById("customerName").value = customer.custName;
-        document.getElementById("customerAddress").value = customer.custAddress;
-        document.getElementById("customerNumber").value = customer.custContact;
-    };
-
-    const validatecustId = (custId) => /^C\d{3}$/.test(custId);
-    const validatecustName = (custName) => /^[a-zA-Z\s]+$/.test(custName);
-    const validatecustAddress = (custAddress) => custAddress.trim() !== "";
-    const validatecustContact = (custContact) => /^[0-9]{10}$/.test(custContact);
-
-    customerForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const custId = document.getElementById("customerID").value;
-        const custName = document.getElementById("customerName").value;
-        const custAddress = document.getElementById("customerAddress").value;
-        const custContact = document.getElementById("customerNumber").value;
-
-        if (!validatecustId(custId)) {
-            showToast("Customer ID Format 'C000'", "error");
-            return;
-        }
-        if (!validatecustName(custName)) {
-            showToast("Name must contain only letters", "error");
-            return;
-        }
-        if (!validatecustAddress(custAddress)) {
-            showToast("Address cannot be empty", "error");
-            return;
-        }
-        if (!validatecustContact(custContact)) {
-            showToast("Contact must be 10 digits numbers", "error");
-            return;
-        }
-
-        const customerData = {
-            custId,
-            custName,
-            custAddress,
-            custContact,
+            isUpdate = true;
+            currentContact = c.custContact;
+            btn.innerText = "Update";
         };
 
-        try {
-            let url = "http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/customer";
-            let method = isUpdateMode ? "PUT" : "POST";
-            let successMessage = isUpdateMode ? "Customer Updated Successfully" : "Customer Added Successfully";
+        // DELETE
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerText = "Delete";
+        deleteBtn.onclick = async () => {
+            if (!confirm("Delete this customer?")) return;
 
-            if (isUpdateMode) {
-                url += `?custContact=${currentCustomerContact}`;
-            }
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(customerData),
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "deleteCustomer",
+                    data: { custContact: c.custContact }
+                })
             });
 
-            if (response.ok) {
-                showToast(successMessage, "success");
-                await loadCustomersIntoTable();
-                closeCustomerRegisterForm();
-            } else {
-                const errorText = await response.text();
-                showToast(`Failed! Try again: ${errorText}`, "error");
+            toast("Customer Deleted");
+            loadCustomers();
+        };
+
+        const user = JSON.parse(localStorage.getItem("user"));
+
+            if (user.role !== "admin") {
+                removeButton.style.display = "none";
             }
-        } catch (error) {
-            showToast("Error saving customer data", "error");
-        }
+
+        const actionTd = document.createElement("td");
+        actionTd.appendChild(updateBtn);
+
+        const actionTd2 = document.createElement("td");
+        actionTd2.appendChild(deleteBtn);
+
+        row.appendChild(actionTd);
+        row.appendChild(actionTd2);
+
+        table.appendChild(row);
+    }
+
+    // ======================
+    // SUBMIT
+    // ======================
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const customer = {
+            custId: document.getElementById("customerID").value,
+            custName: document.getElementById("customerName").value,
+            custAddress: document.getElementById("customerAddress").value,
+            custContact: document.getElementById("customerNumber").value
+        };
+
+        const type = isUpdate ? "updateCustomer" : "addCustomer";
+
+        await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type,
+                data: customer
+            })
+        });
+
+        toast(isUpdate ? "Updated" : "Added");
+
+        popup.style.display = "none";
+        form.reset();
+        isUpdate = false;
+        btn.innerText = "Submit";
+
+        loadCustomers();
     });
 
-    loadCustomersIntoTable();
+    loadCustomers();
 });

@@ -1,254 +1,58 @@
-// add hovered class in selected list item
-let list = document.querySelectorAll('.navigation li');
-function activeLink(){
-    list.forEach((item) =>
-    item.classList.remove('hovered'));
-    this.classList.add('hovered');
-}
-list.forEach((item) => 
-item.addEventListener('mouseover',activeLink));
+const user = JSON.parse(localStorage.getItem("user"));
 
-// MenuToggle
-let toggle = document.querySelector('.toggle');
-let navigation = document.querySelector('.navigation');
-let main = document.querySelector('.main');
-
-toggle.onclick = function(){
-    navigation.classList.toggle('active');
-    main.classList.toggle('active');
+if (!user) {
+    window.location.href = "loginRegister.html";
 }
 
-//charts
+if (user.role !== "admin") {
+    console.log("Cashier mode - limited access");
+}
+const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
-// BAR CHART
-const barChartOptions = {
-    series: [
-      {
-        data: [216, 148, 84, 72, 174],
-        name: 'Products',
-      },
-    ],
-    chart: {
-      type: 'bar',
-      background: 'transparent',
-      height: 350,
-      toolbar: {
-        show: false,
-      },
-    },
-    colors: ['#8d99ae', '#ff595e', '#52b788', '#ffbf69', '#a882dd'],
-    plotOptions: {
-      bar: {
-        distributed: true,
-        borderRadius: 4,
-        horizontal: false,
-        columnWidth: '40%',
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    fill: {
-      opacity: 1,
-    },
-    grid: {
-      borderColor: '#b08968',
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      xaxis: {
-        lines: {
-          show: true,
-        },
-      },
-    },
-    legend: {
-      labels: {
-        colors: '#7f5539',
-      },
-      show: true,
-      position: 'top',
-    },
-    stroke: {
-      colors: ['transparent'],
-      show: true,
-      width: 2,
-    },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      theme: 'dark',
-    },
-    xaxis: {
-      categories: ['Cappuccino', 'Latte', 'Mocha', 'Americano', 'Muffin'],
-      title: {
-        style: {
-          color: '#7f5539',
-        },
-      },
-      axisBorder: {
-        show: true,
-        color: '#7f5539',
-      },
-      axisTicks: {
-        show: true,
-        color: '#7f5539',
-      },
-      labels: {
-        style: {
-          colors: '#7f5539',
-        },
-      },
-    },
-    yaxis: {
-      title: {
-        text: 'Count',
-        style: {
-          color: '#7f5539',
-        },
-      },
-      axisBorder: {
-        color: '#55596e',
-        show: true,
-      },
-      axisTicks: {
-        color: '#55596e',
-        show: true,
-      },
-      labels: {
-        style: {
-          colors: '#7f5539',
-        },
-      },
-    },
-  };
-  
-  const barChart = new ApexCharts(
-    document.querySelector('#bar-chart'),
-    barChartOptions
-  );
-  barChart.render();
-  
-  // AREA CHART
-const areaChartOptions = {
-  series: [
-    {
-      name: 'Dessrets',
-      data: [31, 40, 28, 51, 42, 109, 100],
-    },
-    {
-      name: 'Beverages',
-      data: [11, 32, 45, 32, 34, 52, 41],
-    },
-  ],
-  chart: {
-    type: 'area',
-    background: 'transparent',
-    height: 350,
-    stacked: false,
-    toolbar: {
-      show: false,
-    },
-  },
-  colors: ['#70798c', '#ffbf69'],
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-  dataLabels: {
-    enabled: false,
-  },
-  fill: {
-    gradient: {
-      opacityFrom: 0.4,
-      opacityTo: 0.1,
-      shadeIntensity: 1,
-      stops: [0, 100],
-      type: 'vertical',
-    },
-    type: 'gradient',
-  },
-  grid: {
-    borderColor: '#7f5539',
-    yaxis: {
-      lines: {
-        show: true,
-      },
-    },
-    xaxis: {
-      lines: {
-        show: true,
-      },
-    },
-  },
-  legend: {
-    labels: {
-      colors: '#7f5539',
-    },
-    show: true,
-    position: 'top',
-  },
-  markers: {
-    size: 6,
-    strokeColors: '#7f5539',
-    strokeWidth: 3,
-  },
-  stroke: {
-    curve: 'smooth',
-  },
-  xaxis: {
-    axisBorder: {
-      color: '#7f5539',
-      show: true,
-    },
-    axisTicks: {
-      color: '#55596e',
-      show: true,
-    },
-    labels: {
-      offsetY: 5,
-      style: {
-        colors: '#7f5539',
-      },
-    },
-  },
-  yaxis: [
-    {
-      title: {
-        text: 'Beverages',
-        style: {
-          color: '#7f5539',
-        },
-      },
-      labels: {
-        style: {
-          colors: ['#7f5539'],
-        },
-      },
-    },
-    {
-      opposite: true,
-      title: {
-        text: 'Desserts',
-        style: {
-          color: '#7f5539',
-        },
-      },
-      labels: {
-        style: {
-          colors: ['#7f5539'],
-        },
-      },
-    },
-  ],
-  tooltip: {
-    shared: true,
-    intersect: false,
-    theme: 'dark',
-  },
-};
+async function loadDashboard() {
 
-const areaChart = new ApexCharts(
-  document.querySelector('#area-chart'),
-  areaChartOptions
-);
-areaChart.render();
+    const res = await fetch(API_URL + "?type=dashboard");
+    const data = await res.json();
+
+    // ======================
+    // KPI VALUES
+    // ======================
+    document.getElementById("total-sales").innerText = "Rs " + data.totalSales;
+    document.getElementById("total-orders").innerText = data.totalOrders;
+    document.getElementById("total-profit").innerText = "Rs " + data.totalProfit;
+
+    // ======================
+    // TOP PRODUCTS CHART
+    // ======================
+    let labels = data.topProducts.map(p => p.name);
+    let values = data.topProducts.map(p => p.count);
+
+    renderBarChart(labels, values);
+}
+
+
+// ======================
+// CHART UPDATE
+// ======================
+function renderBarChart(labels, values) {
+
+    const options = {
+        series: [{
+            name: "Sales",
+            data: values
+        }],
+        chart: {
+            type: "bar",
+            height: 350
+        },
+        xaxis: {
+            categories: labels
+        }
+    };
+
+    document.querySelector("#bar-chart").innerHTML = "";
+
+    new ApexCharts(document.querySelector("#bar-chart"), options).render();
+}
+
+loadDashboard();

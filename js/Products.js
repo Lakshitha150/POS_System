@@ -1,199 +1,152 @@
-$(document).ready(function() {
-    const $productRegisterForm = $("#productRegisterForm");
-    const $productTableList = $("#product-table-list");
-    const $productForm = $("#product-form");
-    const $productButton = $("#product-submit");
+import { getProducts } from "./db.js";
+
+const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+
+let productDataList = [];
+
+$(document).ready(function () {
+
+    const $table = $("#product-table-list");
+    const $form = $("#product-form");
+    const $popup = $("#productRegisterForm");
     const $title = $("#title");
-    let isProductUpdateMode = false;
-    let currentProductId = null;
+    const $btn = $("#product-submit");
 
-    // Toast notification function
-    const showToast = (message, type = "success") => {
-        const $toast = $("#toast");
-        $toast.removeClass("success error");
-        $toast.addClass(type);
-        $toast.text(message);
-        $toast.addClass("show");
-        setTimeout(() => {
-            $toast.removeClass("show");
-        }, 3000);
-    };
+    let isUpdate = false;
+    let currentId = null;
 
-    // Set up event listener
-    const openProductRegisterForm = () => {
-        $productRegisterForm.show();
-        $title.text("Register Product");
-    };
+    // ======================
+    // TOAST
+    // ======================
+    function toast(msg, type = "success") {
+        const $t = $("#toast");
+        $t.removeClass("success error");
+        $t.addClass(type);
+        $t.text(msg).addClass("show");
 
-    const closeProductRegisterForm = () => {
-        $productRegisterForm.hide();
-        $productForm[0].reset();
-        $productButton.text("Submit");
-        isProductUpdateMode = false;
-        currentProductId = null;
-    };
+        setTimeout(() => $t.removeClass("show"), 3000);
+    }
 
-    $("#add-product").on("click", openProductRegisterForm);
-    $("#productRegisterForm-close").on("click", closeProductRegisterForm);
-
-    // Load items
-    const LoadProductsIntoTable = async () => {
-        await loadProductsFromBackend();
-        $productTableList.empty();
-        productDataList.forEach((product) => {
-            addProductToTable(product, $productTableList);
-        });
-    };
-
-    const loadProductsFromBackend = async () => {
-        try {
-            const response = await fetch("http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/product");
-            if (!response.ok) {
-                throw new Error(`HTTP error! : ${response.status}`);
-            }
-            const data = await response.json();
-            productDataList = data;
-        } catch (error) {
-            showToast("Error fetching products", "error");
-        }
-    };
-
-    const addProductToTable = (product, table) => {
-        const $row = $("<tr>");
-        const keys = ["pro_id", "pro_name", "price", "category", "quantity"];
-        keys.forEach((key) => {
-            const $cell = $("<td>").text(product[key]);
-            $row.append($cell);
-        });
-
-        // Create Update button
-        const $updateCell = $("<td>");
-        const $updateButton = $("<button>").text("Update").addClass("action-button");
-        $updateButton.on("click", () => {
-            openProductRegisterForm();
-            fillFormWithProductData(product);
-            $title.text("Update Product");
-            isProductUpdateMode = true;
-            currentProductId = product.pro_id;
-            $productButton.text("Update");
-        });
-        $updateCell.append($updateButton);
-        $row.append($updateCell);
-
-        // Create Remove button
-        const $removeCell = $("<td>");
-        const $removeButton = $("<button>").text("Remove").addClass("action-button");
-        $removeButton.on("click", async () => {
-            if (confirm(`Are you sure you want to remove product ${product.pro_id}?`)) {
-                try {
-                    const response = await fetch(`http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/product?pro_id=${product.pro_id}`, {
-                        method: "DELETE",
-                    });
-                    if (response.ok) {
-                        $row.remove();
-                        productDataList = productDataList.filter((p) => p.pro_id !== product.pro_id);
-                        showToast("Product Deleted Successfully", "success");
-                    } else {
-                        const errorText = await response.text();
-                        showToast(`Error removing product: ${errorText}`, "error");
-                    }
-                } catch (error) {
-                    showToast("Error removing product", "error");
-                }
-            }
-        });
-        $removeCell.append($removeButton);
-        $row.append($removeCell);
-
-        // Append the row to the table
-        table.append($row);
-    };
-
-    const fillFormWithProductData = (product) => {
-        $("#productID").val(product.pro_id);
-        $("#productName").val(product.pro_name);
-        $("#price").val(product.price);
-        $("#category").val(product.category);
-        $("#quantity").val(product.quantity);
-    };
-
-    // Validation functions
-    const validateProID = (pro_id) => /^P\d{3}$/.test(pro_id);
-    const validateProName = (pro_name) => /^[a-zA-Z\s]+$/.test(pro_name);
-    const validatePrice = (price) => /^[0-9]+(\.[0-9]{1,2})?$/.test(price) && parseFloat(price) > 0;
-    const validateCategory = (category) => category.trim() !== "";
-    const validateQuantity = (quantity) => /^[0-9]+$/.test(quantity) && parseInt(quantity, 10) > 0;
-
-    // Handle form submit and update product
-    $productForm.on("submit", async (event) => {
-        event.preventDefault();
-
-        // Get form data
-        const pro_id = $("#productID").val();
-        const pro_name = $("#productName").val();
-        const price = $("#price").val();
-        const category = $("#category").val();
-        const quantity = $("#quantity").val();
-
-        // Validate data
-        if (!validateProID(pro_id)) {
-            showToast("Item ID must be in 'P000' format", "error");
-            return;
-        }
-        if (!validateProName(pro_name)) {
-            showToast("Name must contain only letters", "error");
-            return;
-        }
-        if (!validatePrice(price)) {
-            showToast("Price must be a valid positive number", "error");
-            return;
-        }
-        if (!validateCategory(category)) {
-            showToast("Category cannot be empty", "error");
-            return;
-        }
-        if (!validateQuantity(quantity)) {
-            showToast("Quantity must be a positive number", "error");
-            return;
-        }
-
-        const productData = {
-            pro_id,
-            pro_name,
-            price,
-            category,
-            quantity,
-        };
-
-        try {
-            let url = "http://localhost:8080/Coffee_Shop_POS_JavaEE_Backend_war/product";
-            let method = isProductUpdateMode ? "PUT" : "POST";
-            let successMessage = isProductUpdateMode ? "Product Updated Successfully" : "Product Added Successfully";
-
-            if (isProductUpdateMode) {
-                url += `?pro_id=${currentProductId}`;
-            }
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(productData),
-            });
-
-            if (response.ok) {
-                showToast(successMessage, "success");
-                await LoadProductsIntoTable();
-                closeProductRegisterForm();
-            } else {
-                const errorText = await response.text();
-                showToast(`Process failed: ${errorText}`, "error");
-            }
-        } catch (error) {
-            showToast("Error processing product data", "error");
-        }
+    // ======================
+    // OPEN / CLOSE FORM
+    // ======================
+    $("#add-product").on("click", () => {
+        $popup.show();
+        $title.text("Add Product");
     });
 
-    LoadProductsIntoTable();
+    $("#productRegisterForm-close").on("click", () => {
+        $popup.hide();
+        $form[0].reset();
+        isUpdate = false;
+        currentId = null;
+        $btn.text("Submit");
+    });
+
+    // ======================
+    // LOAD PRODUCTS
+    // ======================
+    async function loadProducts() {
+        productDataList = await getProducts();
+
+        $table.empty();
+
+        productDataList.forEach(p => renderRow(p));
+    }
+
+    // ======================
+    // RENDER ROW
+    // ======================
+    function renderRow(p) {
+        const row = $("<tr>");
+
+        row.append(`<td>${p.pro_id}</td>`);
+        row.append(`<td>${p.pro_name}</td>`);
+        row.append(`<td>${p.price}</td>`);
+        row.append(`<td>${p.category}</td>`);
+        row.append(`<td>${p.quantity}</td>`);
+
+        // UPDATE
+        const updateBtn = $("<button>")
+            .text("Update")
+            .addClass("action-button")
+            .on("click", () => {
+                $("#productID").val(p.pro_id);
+                $("#productName").val(p.pro_name);
+                $("#price").val(p.price);
+                $("#category").val(p.category);
+                $("#quantity").val(p.quantity);
+
+                isUpdate = true;
+                currentId = p.pro_id;
+
+                $popup.show();
+                $title.text("Update Product");
+                $btn.text("Update");
+            });
+
+        // DELETE
+        const deleteBtn = $("<button>")
+            .text("Delete")
+            .addClass("action-button")
+            .on("click", async () => {
+                if (!confirm("Delete this product?")) return;
+
+                await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        type: "deleteProduct",
+                        data: { pro_id: p.pro_id }
+                    })
+                });
+
+                toast("Deleted Successfully");
+                loadProducts();
+            });
+
+        row.append($("<td>").append(updateBtn));
+        row.append($("<td>").append(deleteBtn));
+
+        $table.append(row);
+    }
+
+    // ======================
+    // SUBMIT (ADD / UPDATE)
+    // ======================
+    $form.on("submit", async function (e) {
+        e.preventDefault();
+
+        const product = {
+            pro_id: $("#productID").val(),
+            pro_name: $("#productName").val(),
+            price: $("#price").val(),
+            category: $("#category").val(),
+            quantity: $("#quantity").val()
+        };
+
+        let type = isUpdate ? "updateProduct" : "addProduct";
+
+        await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type,
+                data: product
+            })
+        });
+
+        toast(isUpdate ? "Updated Successfully" : "Added Successfully");
+
+        $popup.hide();
+        $form[0].reset();
+        isUpdate = false;
+        currentId = null;
+        $btn.text("Submit");
+
+        loadProducts();
+    });
+
+    // INIT
+    loadProducts();
 });

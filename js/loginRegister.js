@@ -94,4 +94,24 @@ function showToast(message, type) {
     }, 3000);
 }
 
+signInWithEmailAndPassword(auth, email, password)
+.then((userCredential) => {
+
+    const user = userCredential.user;
+
+    // TEMP ROLE LOGIC (you can later move to Firestore)
+    let role = "cashier";
+
+    if (email === "admin@coffee.com") {
+        role = "admin";
+    }
+
+    localStorage.setItem("user", JSON.stringify({
+        email: email,
+        role: role
+    }));
+
+    window.location.href = "index.html";
+});
+
 
