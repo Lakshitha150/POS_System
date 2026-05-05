@@ -179,7 +179,7 @@ input:focus{
     /* background: rgb(238, 164, 103);
     background: #b08968;
     background: #b08968; */
-    background-image: url(/assest/image/loginpage.jpg);
+    background-image: url(../assest/image/loginpage.jpg);
     opacity:85%;
     background-repeat: no-repeat;
     background-size: cover;

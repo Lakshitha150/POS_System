@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+const ORDER_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 let cart = [];
 let productList = [];
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // LOAD PRODUCTS
     // ======================
     async function loadProducts() {
-        const res = await fetch(API_URL + "?type=products");
+        const res = await fetch(ORDER_API_URL + "?type=products");
         productList = await res.json();
 
         productBox.innerHTML = "";
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // LOAD CUSTOMERS
     // ======================
     async function loadCustomers() {
-        const res = await fetch(API_URL + "?type=customers");
+        const res = await fetch(ORDER_API_URL + "?type=customers");
         customerList = await res.json();
 
         customerSelect.innerHTML = `<option value="">Select Customer</option>`;
@@ -142,9 +142,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("inv-balance").innerText = "Balance: Rs " + order.balance;
 }
 
-    function closeInvoice() {
+    window.closeInvoice = function closeInvoice() {
         document.getElementById("invoice-modal").style.display = "none";
-}
+    };
 
     // ======================
     // INPUT EVENTS
@@ -168,9 +168,8 @@ document.addEventListener("DOMContentLoaded", function () {
             balance: parseFloat(balanceEl.innerText.replace("Rs", ""))
         };
 
-        await fetch(API_URL, {
+        await fetch(ORDER_API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 type: "order",
                 data: order

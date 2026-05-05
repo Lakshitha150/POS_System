@@ -1,6 +1,4 @@
-import { getProducts } from "./db.js";
-
-const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+const PRODUCT_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 let productDataList = [];
 
@@ -47,7 +45,7 @@ $(document).ready(function () {
     // LOAD PRODUCTS
     // ======================
     async function loadProducts() {
-        productDataList = await getProducts();
+        productDataList = await window.getProducts();
 
         $table.empty();
 
@@ -92,9 +90,8 @@ $(document).ready(function () {
             .on("click", async () => {
                 if (!confirm("Delete this product?")) return;
 
-                await fetch(API_URL, {
+                await fetch(PRODUCT_API_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         type: "deleteProduct",
                         data: { pro_id: p.pro_id }
@@ -127,9 +124,8 @@ $(document).ready(function () {
 
         let type = isUpdate ? "updateProduct" : "addProduct";
 
-        await fetch(API_URL, {
+        await fetch(PRODUCT_API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 type,
                 data: product

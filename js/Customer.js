@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+const CUSTOMER_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 let customerDataList = [];
 
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // LOAD CUSTOMERS
     // ======================
     async function loadCustomers() {
-        const res = await fetch(API_URL + "?type=customers");
+        const res = await fetch(CUSTOMER_API_URL + "?type=customers");
         customerDataList = await res.json();
 
         table.innerHTML = "";
@@ -88,9 +88,8 @@ document.addEventListener("DOMContentLoaded", function () {
         deleteBtn.onclick = async () => {
             if (!confirm("Delete this customer?")) return;
 
-            await fetch(API_URL, {
+            await fetch(CUSTOMER_API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     type: "deleteCustomer",
                     data: { custContact: c.custContact }
@@ -102,10 +101,10 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         const user = JSON.parse(localStorage.getItem("user"));
-
-            if (user.role !== "admin") {
-                removeButton.style.display = "none";
-            }
+        if (user && user.role !== "admin") {
+            updateBtn.style.display = "none";
+            deleteBtn.style.display = "none";
+        }
 
         const actionTd = document.createElement("td");
         actionTd.appendChild(updateBtn);
@@ -134,9 +133,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const type = isUpdate ? "updateCustomer" : "addCustomer";
 
-        await fetch(API_URL, {
+        await fetch(CUSTOMER_API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 type,
                 data: customer

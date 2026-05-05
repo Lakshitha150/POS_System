@@ -27,32 +27,15 @@ document.getElementById("OrdersForm-button").addEventListener("click", function 
 });
 
 document.getElementById("SignOutForm-button").addEventListener("click", function () {
-
     const confirmLogout = confirm("Are you sure you want to log out?");
 
-    if (confirmLogout) {
-        // clear session
-        localStorage.removeItem("user");
-
-        // redirect to login page
-        window.location.href = "loginRegister.html";
-    }
-
-});
-    
-    // If the user confirms, proceed with logout
-    if (confirmLogout) {
-        document.getElementById("CustomerForm").style.display = "none";
-        document.getElementById("DashboardForm").style.display = "none";
-        document.getElementById("ProductsForm").style.display = "none";
-        document.getElementById("OrdersForm").style.display = "none";
-        
-        // Redirect to the login page
-        window.location.href = "loginRegister.html";
-    } else {
-        // Optionally handle if the user cancels the logout
+    if (!confirmLogout) {
         console.log("Logout canceled.");
+        return;
     }
+
+    localStorage.removeItem("user");
+    window.location.href = "loginRegister.html";
 });
 
 document.getElementById("customer").addEventListener("click", function (){
@@ -70,9 +53,9 @@ document.getElementById("orders").addEventListener("click", function (){
     document.getElementById("OrdersForm").style.display = "block";
 });
 
-const user = JSON.parse(localStorage.getItem("user"));
+const navigationUser = JSON.parse(localStorage.getItem("user"));
 
-if (user.role !== "admin") {
+if (navigationUser && navigationUser.role !== "admin") {
     document.getElementById("CustomerForm-button").style.display = "none";
 }
   
