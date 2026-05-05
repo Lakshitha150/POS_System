@@ -547,7 +547,7 @@ body
 
 .charts {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr;
 	gap: 15px;
 	margin-top: 10px;
 	padding: 15px;
@@ -565,12 +565,70 @@ body
 	box-shadow: 0 12px 28px rgba(18, 52, 59, 0.08);
   }
   
-  .chart-title {
+.chart-header
+{
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 14px;
+}
+
+.chart-title
+{
 	color: var(--Darkbrown);
-  }
+	font-size: 1.25rem;
+}
+
+.chart-tabs
+{
+	display: inline-flex;
+	gap: 6px;
+	padding: 4px;
+	background: var(--surface);
+	border: 1px solid var(--brown3);
+	border-radius: 8px;
+}
+
+.chart-tab
+{
+	min-height: 34px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--Darkbrown);
+	cursor: pointer;
+	font-weight: 700;
+	padding: 0 14px;
+}
+
+.chart-tab.active
+{
+	background: var(--accent);
+	color: var(--white);
+}
+
+.chart-filter-select
+{
+	height: 38px;
+	min-width: 140px;
+	border-radius: 8px;
+	border: 1px solid var(--brown3);
+	background: var(--surface);
+	color: var(--Darkbrown);
+	font-weight: 700;
+	padding: 0 10px;
+}
+
+#revenue-chart-month-filter
+{
+	display: none;
+}
+
+#revenue-chart-month-filter.visible
+{
+	display: block;
+}
 
 @media (max-width: 900px)
 {
@@ -621,6 +679,28 @@ body
 	{
 		margin-left: 0;
 		margin-right: 0;
+	}
+
+	.chart-header
+	{
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.chart-tabs
+	{
+		width: 100%;
+	}
+
+	.chart-tab
+	{
+		flex: 1;
+	}
+
+	.chart-filter-select,
+	#revenue-chart-month-filter.visible
+	{
+		width: 100%;
 	}
 }
 

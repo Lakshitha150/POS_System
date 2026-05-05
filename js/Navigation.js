@@ -18,6 +18,9 @@ function setActiveNav(buttonId) {
 function openSection(sectionId, buttonId) {
     showSection(sectionId);
     setActiveNav(buttonId);
+    if (typeof window.updateCustomerTableScroll === "function") {
+        window.updateCustomerTableScroll();
+    }
 }
 
 function showToast(message, type = "success") {
@@ -33,6 +36,7 @@ document.getElementById("Dashboard-button").addEventListener("click", function (
 
 document.getElementById("CustomerForm-button").addEventListener("click", function () {
     openSection("CustomerForm", "CustomerForm-button");
+    if (typeof window.showAllCustomers === "function") window.showAllCustomers();
 });
 
 document.getElementById("ProductsForm-button").addEventListener("click", function () {
@@ -70,6 +74,7 @@ document.getElementById("SignOutForm-button").addEventListener("click", function
 
 document.getElementById("customer").addEventListener("click", function (){
     openSection("CustomerForm", "CustomerForm-button");
+    if (typeof window.showAllCustomers === "function") window.showAllCustomers();
 });
 
 document.getElementById("product").addEventListener("click", function (){

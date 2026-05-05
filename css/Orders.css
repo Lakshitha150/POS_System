@@ -1,325 +1,438 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
-.OrdersForm{
+.OrdersForm {
     display: none;
+    color: #12343b;
 }
 
-.FormTitle{
-    margin-left: 40px;
-    font-size: 35px;
-    color: #7f5539;
-    margin-top: 10px;
-}
-
-.FormTitle span{
-    font-size: 25px;
-    color: #b08968;
-}
-
-.OrderFields{
+.orders-header {
     display: flex;
-    flex-direction: row;
-    /* justify-content: space-between;   */
-}
-
-.menu{
-    margin-left: 170px;
-    margin-top: -5px; 
-    color: #7f5539;
-}
-
-.OrdersHeader-section{
-    height: 500px;
-    width: 450px;
-    margin-left: 40px; 
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 20px;
-    /* background-color: #f8e7d6; */
-
-}
-
-.cart-section{
-    margin-top: 20px;
-    margin-left:62px;
-    height: 200px;
-    width: 450px;
-    padding: 20px;
-    border-radius: 20px;
-    /* background-color: #f8e7d6; */
-    color: #7f5539;
-}
-
-.title-orderHeader-contianer{
-    display: flex;
-    flex-direction: row;
-}
-
-.order-title{
-    margin-top: -5px;
-}
-
-.date{
-    margin-left: 60px;
-    margin-top: 2px;
-    color: #d7a685;
-}
-
-#order-id{
-    margin-top: 20px;
-    font-size: large;
-}
-
-.customer-select-container{
-    display: flex;
-    flex-direction: row;
-    margin-top: 15px;
-    gap: 20px;
-}
-
-#name-holder{
-    font-weight: 400;
-}
-
-.customer-select{
-    font-weight: 400;
-    font-style: normal;
-    font-size: 15px;
-    border-radius: 5px;
-    border: none;
-    padding: 2px;
-    width: 140px;
-    background-color: #f8e7d6;
-    color: #7f5539;
-}
-
-.customer-select:focus {
-    outline: none;
-}
-
-.order-item-cart{
-    right: 20px;
-    top: 20px;
-    width: 360px;
-    margin-left: -5px;
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: #f8e7d6;
-    color: #7f5539;
-}
-
-.order-item-cart h2 {
-    margin-top: 0;
-}
-
-.order-total {
-    margin-top: 20px;
-}
-
-.order-total p {
-    margin: 5px 0;
-    display: flex;
-    font-size:medium;
-    font-weight: 450;
-    margin-top: 10px;
-    justify-content: space-between;
-}
- 
-.cart-item {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin: 2px;
-}
-  
-.remove-button-cart {
-    font-size: 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: transparent;
-}
-  
-.cart-item-name{
-    width: 150px;
-}
-
-.order-row{
-    margin-top: 15px;
-    display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    gap: 5px;
+    gap: 16px;
+    padding: 8px 22px 0;
 }
 
-.order-row label{
-    font-weight: bolder;
-    font-size: 19px;
-    width: 30%;
-    margin-top: 10px;
+.FormTitle {
+    margin: 0;
+    font-size: 35px;
+    color: #12343b;
 }
 
-.order-row input{
-    width: 10rem;
-    height: 30px;
-    margin-top: 5px;
-    font-weight: 400wdqdq;
-    font-style: normal;
-    font-size: 15px;
-    color: #7f5539;
-    border: none;
-    background-color: white;
-    border-radius: 8px;  
+.FormTitle span {
+    font-size: 25px;
+    color: #0f766e;
+}
+
+.orders-header p {
+    margin-top: 6px;
+    color: #587277;
+}
+
+.orders-date {
+    padding: 10px 14px;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    background: #f5faf9;
+    color: #0f766e;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.OrderFields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+    gap: 18px;
+    padding: 18px 22px 28px;
+}
+
+.OrdersHeader-section,
+.cart-section {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(18, 52, 59, 0.08);
+}
+
+.orders-panel-title,
+.title-orderHeader-contianer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.menu,
+.order-title {
+    margin: 0;
+    color: #12343b;
+    font-size: 1.25rem;
+}
+
+.orders-panel-title span {
+    color: #d59f32;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.order-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.product-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    background: #f5faf9;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    border-color: #0f766e;
+    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.14);
+    transform: translateY(-2px);
+}
+
+.product-card h4 {
+    margin: 0;
+    color: #12343b;
+    font-size: 1rem;
+}
+
+.product-card p {
+    margin: 0;
+    color: #587277;
+    font-size: 0.9rem;
+}
+
+.product-card strong {
+    color: #0f766e;
+    font-size: 1.1rem;
+}
+
+#order-id {
+    margin: 0 0 12px;
+    color: #587277;
+    font-size: 0.95rem;
+}
+
+.customer-select-container {
+    margin-bottom: 14px;
+}
+
+.customer-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    background: #f5faf9;
+    color: #12343b;
+    font-weight: 600;
+}
+
+.customer-select:focus,
+.order-row input:focus {
+    outline: 2px solid #d59f32;
+}
+
+.order-item-cart {
+    display: grid;
+    gap: 14px;
+}
+
+.cart-items {
+    display: grid;
+    gap: 8px;
+    min-height: 150px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.cart-empty {
+    padding: 18px;
+    border: 1px dashed #d7e8e6;
+    border-radius: 8px;
+    background: #f5faf9;
+    color: #587277;
     text-align: center;
 }
 
-.order-row input:focus {
-    outline: 2px solid #7f5539;
-}
-  
-.remove-button-cart {
-    font-size: 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: transparent;
-}
-  
-.cart-item-name{
-    width: 150px;
+.cart-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #e3efee;
+    border-radius: 8px;
+    background: #f8fbfb;
 }
 
-#purchase{
-    width: 10rem;
-    height: 35px;
-    margin-top: 20px;
-    margin-left: 80px;
-    width: 50%;
-    border: none;
-    cursor: pointer;
+.cart-item strong,
+.cart-item span {
+    color: #12343b;
+}
+
+.cart-item small {
+    display: block;
+    margin-top: 3px;
+    color: #587277;
+}
+
+.remove-button-cart {
+    width: 30px;
+    height: 30px;
+    border: 0;
     border-radius: 8px;
-    font-weight: 600;
-    font-style: normal;
-    font-size: 15px;
-    color: white;
-    background: #b08968;
-    border: 1px solid #b08968;
+    background: #fff2f2;
+    color: #c24141;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.order-total {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f5faf9;
+}
+
+.order-total p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    color: #12343b;
+    font-weight: 700;
+}
+
+.order-total p:nth-child(2) {
+    padding-top: 8px;
+    border-top: 1px solid #d7e8e6;
+    color: #0f766e;
+    font-size: 1.1rem;
+}
+
+.order-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.order-row label {
+    display: block;
+    margin-bottom: 6px;
+    color: #12343b;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.order-row input {
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid #d7e8e6;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #12343b;
+    font-size: 1rem;
+}
+
+#purchase {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #0f766e;
+    border-radius: 8px;
+    background: #0f766e;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 800;
 }
 
 #purchase:hover {
-    cursor: pointer;
-    background:#f8e7d6;
-    color: #7f5539;
-}
-
-
-/* Parent container for the product cards */
-.product-card-container {
-    display: grid;
-    gap: 20px; /* Space between the cards */
-}
-
-/* Each product card */
-.product-card {
-    display: flex;
-    flex-direction: column;
-    margin-top: 12px;
-    padding: 10px;
-    border: 1px solid #f8e7d6;
-    border-radius: 8px;
-    background-color: #f8e7d6;
-}
-
-.product-card:hover{
-    cursor: pointer;
-    background-color: #f7ccb0;
-    border: 1px solid #d7a685;
-}
-
-.product-name {
-    font-size: 20px;
-    font-weight: bolder;
-    color: #7f5539;
-    margin-bottom: 8px;
-}
-
-.product-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2px;
-}
-
-.product-price {
-    font-size: 20px;
-    color: #e67e22;
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.product-count {
-    font-size: 14px;
-    color: #7f5539;
-    font-weight: bold;
-    font-size: 15px;
-    align-self: center;
-}
-
-/* Container for the cart product */
-.cart-product {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-}
-
-/* Product name and quantity */
-.cart-product-name {
-    font-size: 16px;
-    color: #7f5539;
-    font-weight: bold;
-    flex: 1;
-}
-
-/* Product price */
-.cart-product-price {
-    font-size: 16px;
-    margin-left: 40px;
-    color: yellow;
-    font-weight: bolder;
-}
-
-/* Remove button */
-.remove-button-cart {
-    background-color: transparent;
-    border: none;
-    margin-left: 20px;
-    font-size: 18px;
-    cursor: pointer;
-    color: #e74c3c;
+    background: #12343b;
+    border-color: #12343b;
 }
 
 #invoice-modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    background: rgba(0,0,0,0.6);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
+    inset: 0;
+    z-index: 2000;
     align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(18, 52, 59, 0.52);
 }
 
 #invoice-content {
-    background: white;
-    padding: 20px;
-    width: 400px;
-    border-radius: 10px;
+    width: 320px;
+    max-width: 94vw;
+    padding: 16px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+    font-family: 'Courier New', monospace;
 }
 
-#inv-items p {
+.receipt-brand {
+    text-align: center;
+}
+
+.receipt-brand h2 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+.receipt-brand p,
+.receipt-meta p,
+.receipt-footer {
+    margin: 4px 0;
+    font-size: 12px;
+}
+
+.receipt-rule {
+    height: 1px;
+    margin: 10px 0;
+    border-top: 1px dashed #111111;
+}
+
+.receipt-items,
+.receipt-totals {
+    display: grid;
+    gap: 6px;
+}
+
+.receipt-line,
+.receipt-totals p {
     display: flex;
     justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+    font-size: 12px;
+}
+
+.receipt-line span:first-child {
+    flex: 1;
+}
+
+.receipt-grand-total {
+    padding-top: 6px;
+    border-top: 1px dashed #111111;
+    font-size: 15px !important;
+    font-weight: 800;
+}
+
+.receipt-footer {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.receipt-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.receipt-actions button {
+    flex: 1;
+    height: 36px;
+    border: 1px solid #0f766e;
+    border-radius: 8px;
+    background: #0f766e;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.receipt-actions button:last-child {
+    background: #ffffff;
+    color: #12343b;
+    border-color: #d7e8e6;
+}
+
+@media (max-width: 900px) {
+    .orders-header,
+    .OrderFields {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .orders-header,
+    .orders-panel-title,
+    .title-orderHeader-contianer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .OrderFields {
+        grid-template-columns: 1fr;
+    }
+
+    .order-items {
+        max-height: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .FormTitle {
+        font-size: 28px;
+    }
+
+    .order-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    @page {
+        size: 80mm auto;
+        margin: 4mm;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    #invoice-modal,
+    #invoice-modal *,
+    #invoice-content,
+    #invoice-content * {
+        visibility: visible !important;
+    }
+
+    #invoice-modal {
+        position: static !important;
+        display: block !important;
+        width: 80mm !important;
+        height: auto !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    #invoice-content {
+        width: 72mm !important;
+        max-width: 72mm !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .receipt-actions {
+        display: none !important;
+    }
 }

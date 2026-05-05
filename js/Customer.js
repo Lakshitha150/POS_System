@@ -7,9 +7,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const table = document.getElementById("customer-table-list");
     const form = document.getElementById("customer-form");
     const quickForm = document.getElementById("quick-customer-form");
+    const tableWrap = document.getElementById("customer-table-wrap");
+    const scrollDock = document.getElementById("customer-scroll-dock");
+    const horizontalScroll = document.getElementById("customer-horizontal-scroll");
     const popup = document.getElementById("customerRegisterForm");
     const title = document.getElementById("registerTitle");
     const btn = document.getElementById("customer-submit");
+    const filterIds = [
+        "customer-search-filter",
+        "customer-status-filter",
+        "customer-town-filter",
+        "customer-place-filter",
+        "customer-representative-filter",
+        "customer-year-filter",
+        "customer-month-filter"
+    ];
 
     let isUpdate = false;
     let currentCustomerId = null;
@@ -46,15 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ======================
     async function loadCustomers() {
         customerDataList = await window.getCustomers();
-
-        table.innerHTML = "";
-
-        if (!customerDataList.length) {
-            table.innerHTML = `<tr><td colspan="18">No customers found. Check the Google Apps Script deployment.</td></tr>`;
-            return;
-        }
-
-        customerDataList.forEach(c => renderRow(normalizeCustomer(c)));
+        setupCustomerFilters();
+        applyCustomerFilters();
     }
 
     function normalizeCustomer(c) {
@@ -84,6 +89,191 @@ document.addEventListener("DOMContentLoaded", function () {
         if (Number.isNaN(date.getTime())) return value;
         return date.toISOString().slice(0, 10);
     }
+
+    function renderCustomerTable(customers) {
+        table.innerHTML = "";
+
+        if (!customers.length) {
+            table.innerHTML = `<tr><td colspan="18">No customers found. Check the Google Apps Script deployment.</td></tr>`;
+            requestAnimationFrame(updateCustomerTableScroll);
+            return;
+        }
+
+        customers.forEach(c => renderRow(normalizeCustomer(c)));
+        requestAnimationFrame(updateCustomerTableScroll);
+    }
+
+    function setupCustomerFilters() {
+        const customers = customerDataList.map(normalizeCustomer);
+        const representatives = unique(customers.map(customer => customer.representative));
+
+        fillSelect("customer-status-filter", unique(customers.map(customer => customer.orderStatus)), "All Status");
+        fillSelect("customer-town-filter", unique(customers.map(customer => customer.town)), "All Towns");
+        fillSelect("customer-place-filter", unique(customers.map(customer => customer.place)), "All Places");
+        fillSelect("customer-representative-filter", representatives, "All Representatives");
+        fillSelect("customer-year-filter", unique(customers.map(customer => getCustomerYear(customer))).sort(), "All Years");
+        fillSelect("quickRepresentative", representatives, "Representative");
+        fillSelect("representative", representatives, "Representative");
+
+        filterIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element && !element.dataset.bound) {
+                element.addEventListener(id === "customer-search-filter" ? "input" : "change", applyCustomerFilters);
+                element.dataset.bound = "true";
+            }
+        });
+
+        const moreButton = document.getElementById("customer-more-filters");
+        const moreFilters = document.getElementById("customer-filter-more");
+        if (moreButton && moreFilters && !moreButton.dataset.bound) {
+            moreButton.addEventListener("click", () => {
+                moreFilters.classList.toggle("open");
+                moreButton.innerText = moreFilters.classList.contains("open") ? "Less Filters" : "More Filters";
+            });
+            moreButton.dataset.bound = "true";
+        }
+
+        const clearButton = document.getElementById("customer-clear-filters");
+        if (clearButton && !clearButton.dataset.bound) {
+            clearButton.addEventListener("click", () => {
+                filterIds.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.value = "";
+                });
+                applyCustomerFilters();
+            });
+            clearButton.dataset.bound = "true";
+        }
+
+        setupCustomerTableScroll();
+    }
+
+    function fillSelect(id, values, firstLabel) {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = `<option value="">${firstLabel}</option>`;
+
+        values.filter(Boolean).forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            select.appendChild(option);
+        });
+
+        if ([...select.options].some(option => option.value === currentValue)) {
+            select.value = currentValue;
+        }
+    }
+
+    function applyCustomerFilters() {
+        const search = getFilterValue("customer-search-filter").toLowerCase();
+        const status = getFilterValue("customer-status-filter");
+        const town = getFilterValue("customer-town-filter");
+        const place = getFilterValue("customer-place-filter");
+        const representative = getFilterValue("customer-representative-filter");
+        const year = getFilterValue("customer-year-filter");
+        const month = getFilterValue("customer-month-filter");
+
+        const filtered = customerDataList.filter(customer => {
+            const c = normalizeCustomer(customer);
+            const date = parseCustomerDate(c.appointmentDate);
+            const searchable = [
+                c.town,
+                c.place,
+                c.representative,
+                c.customerID,
+                c.name,
+                c.contactNo,
+                c.orderStatus
+            ].join(" ").toLowerCase();
+
+            const matchesSearch = !search || searchable.includes(search);
+            const matchesStatus = !status || c.orderStatus === status;
+            const matchesTown = !town || c.town === town;
+            const matchesPlace = !place || c.place === place;
+            const matchesRepresentative = !representative || c.representative === representative;
+            const matchesYear = !year || (date && String(date.getFullYear()) === year);
+            const matchesMonth = month === "" || (date && String(date.getMonth()) === month);
+
+            return matchesSearch && matchesStatus && matchesTown && matchesPlace && matchesRepresentative && matchesYear && matchesMonth;
+        });
+
+        renderCustomerTable(filtered);
+    }
+
+    function isPendingCustomerStatus(status) {
+        const normalized = String(status || "").toLowerCase();
+        return !["complete", "completed", "delivered", "done", "closed"].includes(normalized);
+    }
+
+    window.showPendingCustomers = function () {
+        const pendingCustomers = customerDataList.filter(customer => {
+            const normalizedCustomer = normalizeCustomer(customer);
+            return isPendingCustomerStatus(normalizedCustomer.orderStatus);
+        });
+
+        renderCustomerTable(pendingCustomers);
+    };
+
+    window.showAllCustomers = function () {
+        filterIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = "";
+        });
+        applyCustomerFilters();
+    };
+
+    function parseCustomerDate(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function getCustomerYear(customer) {
+        const date = parseCustomerDate(customer.appointmentDate);
+        return date ? date.getFullYear() : "";
+    }
+
+    function getFilterValue(id) {
+        const element = document.getElementById(id);
+        return element ? element.value : "";
+    }
+
+    function unique(values) {
+        return [...new Set(values.filter(Boolean))].sort();
+    }
+
+    function setupCustomerTableScroll() {
+        if (!tableWrap || !horizontalScroll || horizontalScroll.dataset.bound) return;
+
+        horizontalScroll.addEventListener("input", () => {
+            tableWrap.scrollLeft = Number(horizontalScroll.value);
+        });
+
+        tableWrap.addEventListener("scroll", () => {
+            horizontalScroll.value = String(Math.round(tableWrap.scrollLeft));
+        });
+
+        window.addEventListener("resize", updateCustomerTableScroll);
+        horizontalScroll.dataset.bound = "true";
+        updateCustomerTableScroll();
+    }
+
+    function updateCustomerTableScroll() {
+        if (!tableWrap || !horizontalScroll || !scrollDock) return;
+
+        const customerSection = document.getElementById("CustomerForm");
+        const isCustomerVisible = customerSection && window.getComputedStyle(customerSection).display !== "none";
+        const maxScroll = Math.max(tableWrap.scrollWidth - tableWrap.clientWidth, 0);
+
+        horizontalScroll.max = String(maxScroll);
+        horizontalScroll.value = String(Math.min(Math.round(tableWrap.scrollLeft), maxScroll));
+        scrollDock.classList.toggle("visible", isCustomerVisible && maxScroll > 0);
+    }
+
+    window.updateCustomerTableScroll = updateCustomerTableScroll;
 
     // ======================
     // RENDER ROW

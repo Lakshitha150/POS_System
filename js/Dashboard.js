@@ -10,15 +10,22 @@ if (dashboardUser.role !== "admin") {
 
 const DASHBOARD_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DASHBOARD_REFRESH_INTERVAL_MS = 60000;
 
 let dashboardCustomers = [];
 let dashboardItems = [];
 let dashboardOrders = [];
 let dashboardPlaces = [];
 let yearlyRevenueChart = null;
-let monthlyRevenueChart = null;
+let activeRevenueChartView = "year";
+let dashboardRefreshTimer = null;
+let dashboardRefreshInProgress = false;
+const PENDING_STATUS_FILTER = "__pending_customers__";
 
 async function loadDashboard() {
+    if (dashboardRefreshInProgress) return;
+    dashboardRefreshInProgress = true;
+
     try {
         const [customers, items, orders, places, dashboardData] = await Promise.all([
             window.getCustomers(),
@@ -37,7 +44,16 @@ async function loadDashboard() {
         applyDashboardFilters(dashboardData);
     } catch (error) {
         console.error("Dashboard load failed:", error);
+    } finally {
+        dashboardRefreshInProgress = false;
     }
+}
+
+function startDashboardAutoRefresh() {
+    if (dashboardRefreshTimer) return;
+    dashboardRefreshTimer = setInterval(() => {
+        loadDashboard();
+    }, DASHBOARD_REFRESH_INTERVAL_MS);
 }
 
 async function getDashboardData() {
@@ -64,15 +80,24 @@ function setupDashboardFilters(customers, places) {
     fillSelect("dashboard-representative-filter", representatives, "All Representatives");
     fillSelect("dashboard-place-filter", placeNames, "All Places");
     fillSelect("dashboard-status-filter", unique(customers.map(customer => customer.orderStatus)), "All Status");
-    fillSelect("dashboard-year-filter", unique(customers.map(customer => getRecordYear(customer))).sort(), "All Years");
+    addPendingStatusOption("dashboard-status-filter");
+    const years = unique(customers.map(customer => getRecordYear(customer))).sort();
+    fillSelect("dashboard-year-filter", years, "All Years");
+    fillSelect("revenue-chart-year-filter", years, "Select Year");
 
     ["dashboard-representative-filter", "dashboard-place-filter", "dashboard-status-filter", "dashboard-year-filter", "dashboard-month-filter"].forEach(id => {
         const element = document.getElementById(id);
         if (element && !element.dataset.bound) {
-            element.addEventListener("change", () => applyDashboardFilters());
+            element.addEventListener("change", () => {
+                if (id === "dashboard-year-filter") syncRevenueChartYear(element.value);
+                if (id === "dashboard-month-filter") syncRevenueChartMonth(element.value);
+                applyDashboardFilters();
+            });
             element.dataset.bound = "true";
         }
     });
+
+    setupRevenueChartTabs();
 
     const clearButton = document.getElementById("dashboard-clear-filters");
     if (clearButton && !clearButton.dataset.bound) {
@@ -81,10 +106,84 @@ function setupDashboardFilters(customers, places) {
                 const element = document.getElementById(id);
                 if (element) element.value = "";
             });
+            syncRevenueChartYear("");
+            syncRevenueChartMonth("");
             applyDashboardFilters();
         });
         clearButton.dataset.bound = "true";
     }
+
+    const pendingCard = document.getElementById("pending-customers-card");
+    if (pendingCard && !pendingCard.dataset.bound) {
+        pendingCard.addEventListener("click", () => {
+            setSelectValue("dashboard-status-filter", PENDING_STATUS_FILTER);
+            applyDashboardFilters();
+
+            if (typeof openSection === "function") {
+                openSection("CustomerForm", "CustomerForm-button");
+            }
+
+            if (typeof window.showPendingCustomers === "function") {
+                window.showPendingCustomers();
+            }
+        });
+        pendingCard.dataset.bound = "true";
+    }
+}
+
+function setupRevenueChartTabs() {
+    document.querySelectorAll("[data-chart-view]").forEach(tab => {
+        if (tab.dataset.bound) return;
+
+        tab.addEventListener("click", () => {
+            activeRevenueChartView = tab.dataset.chartView || "year";
+            updateRevenueChartTabs();
+            applyDashboardFilters();
+        });
+        tab.dataset.bound = "true";
+    });
+
+    const chartYear = document.getElementById("revenue-chart-year-filter");
+    if (chartYear && !chartYear.dataset.bound) {
+        chartYear.addEventListener("change", () => {
+            setSelectValue("dashboard-year-filter", chartYear.value);
+            applyDashboardFilters();
+        });
+        chartYear.dataset.bound = "true";
+    }
+
+    const chartMonth = document.getElementById("revenue-chart-month-filter");
+    if (chartMonth && !chartMonth.dataset.bound) {
+        chartMonth.addEventListener("change", () => {
+            setSelectValue("dashboard-month-filter", chartMonth.value);
+            applyDashboardFilters();
+        });
+        chartMonth.dataset.bound = "true";
+    }
+
+    updateRevenueChartTabs();
+}
+
+function updateRevenueChartTabs() {
+    document.querySelectorAll("[data-chart-view]").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.chartView === activeRevenueChartView);
+    });
+
+    const chartMonth = document.getElementById("revenue-chart-month-filter");
+    if (chartMonth) chartMonth.classList.toggle("visible", activeRevenueChartView === "month");
+
+    syncRevenueChartYear(getValue("dashboard-year-filter"));
+    syncRevenueChartMonth(getValue("dashboard-month-filter"));
+}
+
+function syncRevenueChartYear(year) {
+    const chartYear = document.getElementById("revenue-chart-year-filter");
+    if (chartYear) chartYear.value = year;
+}
+
+function syncRevenueChartMonth(month) {
+    const chartMonth = document.getElementById("revenue-chart-month-filter");
+    if (chartMonth) chartMonth.value = month;
 }
 
 function fillSelect(id, values, firstLabel) {
@@ -106,6 +205,16 @@ function fillSelect(id, values, firstLabel) {
     }
 }
 
+function addPendingStatusOption(id) {
+    const select = document.getElementById(id);
+    if (!select || [...select.options].some(option => option.value === PENDING_STATUS_FILTER)) return;
+
+    const option = document.createElement("option");
+    option.value = PENDING_STATUS_FILTER;
+    option.textContent = "Pending Customers";
+    select.insertBefore(option, select.options[1] || null);
+}
+
 function applyDashboardFilters(dashboardData = {}) {
     const representative = getValue("dashboard-representative-filter");
     const place = getValue("dashboard-place-filter");
@@ -117,7 +226,7 @@ function applyDashboardFilters(dashboardData = {}) {
         const date = getRecordDate(customer);
         const matchesRepresentative = !representative || customer.representative === representative;
         const matchesPlace = !place || customer.place === place;
-        const matchesStatus = !status || customer.orderStatus === status;
+        const matchesStatus = matchesStatusFilter(customer, status);
         const matchesYear = !year || (date && String(date.getFullYear()) === year);
         const matchesMonth = month === "" || (date && String(date.getMonth()) === month);
         return matchesRepresentative && matchesPlace && matchesStatus && matchesYear && matchesMonth;
@@ -132,22 +241,31 @@ function applyDashboardFilters(dashboardData = {}) {
     });
 
     const pendingCustomers = filtered.filter(customer => !isCompleteStatus(customer.orderStatus));
-    const completeCustomers = filtered.filter(customer => isCompleteStatus(customer.orderStatus));
     const totalRevenue = sumRevenue(filtered);
 
     setText("customers-count", filtered.length);
     setText("items-count", dashboardData.productsCount ?? dashboardItems.length);
     setText("orders-count", dashboardData.totalOrders ?? dashboardOrders.length);
     setText("pending-count", pendingCustomers.length);
-    setText("completed-count", `${completeCustomers.length} Complete`);
+    setText("status-total-count", `${filtered.length} Cases`);
     setText("filtered-revenue", formatCurrency(totalRevenue));
 
     renderAppointmentList(filtered, filteredPlaces);
     renderRepresentativeRevenue(filtered);
     renderStatusSummary(filtered);
-    renderYearlyRevenueChart(filtered);
-    renderMonthlyRevenueChart(filtered, year || String(new Date().getFullYear()));
-    renderMonthlyRevenueList(filtered);
+    // For monthly revenue list, exclude month filter to show all 12 months
+    const filteredWithoutMonth = dashboardCustomers.filter(customer => {
+        const date = getRecordDate(customer);
+        const matchesRepresentative = !representative || customer.representative === representative;
+        const matchesPlace = !place || customer.place === place;
+        const matchesStatus = matchesStatusFilter(customer, status);
+        const matchesYear = !year || (date && String(date.getFullYear()) === year);
+        return matchesRepresentative && matchesPlace && matchesStatus && matchesYear;
+    });
+    const monthlyYear = year;
+
+    renderRevenueChart(filtered, filteredWithoutMonth, monthlyYear, month);
+    renderMonthlyRevenueList(filteredWithoutMonth, monthlyYear);
 }
 
 function renderAppointmentList(customers, places) {
@@ -246,13 +364,18 @@ function renderStatusSummary(customers) {
     `).join("");
 }
 
-function renderMonthlyRevenueList(customers) {
+function renderMonthlyRevenueList(customers, selectedYear) {
     const list = document.getElementById("monthly-revenue-list");
     if (!list) return;
 
+    const yearCustomers = customers.filter(customer => {
+        const year = getRecordYear(customer);
+        return year && String(year) === String(selectedYear);
+    });
+
     const monthlyTotals = Array(12).fill(0);
 
-    customers.forEach(customer => {
+    yearCustomers.forEach(customer => {
         const date = getRecordDate(customer);
         if (date) monthlyTotals[date.getMonth()] += customer.totalAmount;
     });
@@ -263,12 +386,12 @@ function renderMonthlyRevenueList(customers) {
         .sort((a, b) => b.amount - a.amount);
 
     if (!rows.length) {
-        setText("best-month", "No Data");
-        list.innerHTML = `<div class="empty-state">No monthly revenue for the selected filters.</div>`;
+        setText("best-month", "");
+        list.innerHTML = `<div class="empty-state">${selectedYear ? "No monthly revenue for the selected filters." : "Select a year to view monthly revenue."}</div>`;
         return;
     }
 
-    setText("best-month", `${rows[0].month} ${formatCurrency(rows[0].amount)}`);
+    setText("best-month", "");
     list.innerHTML = rows.map(row => `
         <div class="metric-row">
             <span>${row.month}</span>
@@ -277,13 +400,24 @@ function renderMonthlyRevenueList(customers) {
     `).join("");
 }
 
+function renderRevenueChart(customers, monthlyCustomers, selectedYear, selectedMonth) {
+    if (activeRevenueChartView === "month") {
+        renderMonthlyRevenueChart(monthlyCustomers, selectedYear, selectedMonth);
+        return;
+    }
+
+    renderYearlyRevenueChart(customers);
+}
+
 function renderYearlyRevenueChart(customers) {
     const yearly = groupSum(customers.filter(customer => getRecordYear(customer)), getRecordYear, customer => customer.totalAmount);
     const labels = Object.keys(yearly).sort();
-    const values = labels.map(label => yearly[label]);
+    const yearValues = labels.map(label => yearly[label]);
+
+    setText("revenue-chart-title", "Revenue by Year");
 
     yearlyRevenueChart = renderChart(yearlyRevenueChart, "#bar-chart", {
-        series: [{ name: "Revenue", data: values }],
+        series: [{ name: "Yearly Revenue", data: yearValues }],
         chart: { type: "bar", height: 350, toolbar: { show: false } },
         colors: ["#0f766e"],
         dataLabels: { enabled: false },
@@ -293,28 +427,54 @@ function renderYearlyRevenueChart(customers) {
     });
 }
 
-function renderMonthlyRevenueChart(customers, selectedYear) {
-    const yearCustomers = customers.filter(customer => {
-        const year = getRecordYear(customer);
-        return year && String(year) === String(selectedYear);
-    });
-    const monthly = Array(12).fill(0);
+function renderMonthlyRevenueChart(customers, selectedYear, selectedMonth) {
+    const monthLabel = selectedMonth === "" ? "" : ` - ${MONTH_NAMES[Number(selectedMonth)]}`;
+    setText("revenue-chart-title", selectedYear ? `${selectedYear}${monthLabel} Monthly Revenue` : "Monthly Revenue");
 
-    yearCustomers.forEach(customer => {
-        const date = getRecordDate(customer);
-        if (date) monthly[date.getMonth()] += customer.totalAmount;
-    });
+    if (!selectedYear) {
+        yearlyRevenueChart = renderChart(yearlyRevenueChart, "#bar-chart", {
+            series: [],
+            chart: { type: "bar", height: 350, toolbar: { show: false } },
+            xaxis: { categories: MONTH_NAMES },
+            noData: { text: "Select a year to view monthly revenue" }
+        });
+        return;
+    }
 
-    monthlyRevenueChart = renderChart(monthlyRevenueChart, "#area-chart", {
-        series: [{ name: `${selectedYear} Revenue`, data: monthly }],
+    const monthlyRevenue = getMonthlyRevenue(customers, selectedYear, selectedMonth);
+
+    yearlyRevenueChart = renderChart(yearlyRevenueChart, "#bar-chart", {
+        series: [{ name: `${selectedYear} Monthly Revenue`, data: monthlyRevenue.values }],
         chart: { type: "area", height: 350, toolbar: { show: false } },
         colors: ["#d59f32"],
         dataLabels: { enabled: false },
         stroke: { curve: "smooth", width: 3 },
-        xaxis: { categories: MONTH_NAMES },
+        xaxis: { categories: monthlyRevenue.labels },
         yaxis: { labels: { formatter: value => "Rs " + Math.round(value) } },
         noData: { text: "No monthly revenue data" }
     });
+}
+
+function getMonthlyRevenue(customers, selectedYear, selectedMonth = "") {
+    const monthly = Array(12).fill(0);
+    if (!selectedYear) return { labels: MONTH_NAMES, values: monthly };
+
+    customers.forEach(customer => {
+        const year = getRecordYear(customer);
+        if (!year || String(year) !== String(selectedYear)) return;
+        const date = getRecordDate(customer);
+        if (date) monthly[date.getMonth()] += customer.totalAmount;
+    });
+
+    if (selectedMonth !== "") {
+        const monthIndex = Number(selectedMonth);
+        return {
+            labels: [MONTH_NAMES[monthIndex]],
+            values: [monthly[monthIndex]]
+        };
+    }
+
+    return { labels: MONTH_NAMES, values: monthly };
 }
 
 function renderChart(existingChart, selector, options) {
@@ -379,6 +539,12 @@ function getRecordYear(customer) {
     return date ? date.getFullYear() : "";
 }
 
+function matchesStatusFilter(customer, status) {
+    if (!status) return true;
+    if (status === PENDING_STATUS_FILTER) return !isCompleteStatus(customer.orderStatus);
+    return customer.orderStatus === status;
+}
+
 function isCompleteStatus(status) {
     const normalized = String(status || "").toLowerCase();
     return ["complete", "completed", "delivered", "done", "closed"].includes(normalized);
@@ -423,6 +589,11 @@ function setText(id, value) {
     if (element) element.innerText = value;
 }
 
+function setSelectValue(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.value = value;
+}
+
 function formatCurrency(value) {
     return "Rs " + Math.round(Number(value || 0)).toLocaleString("en-US");
 }
@@ -447,3 +618,4 @@ function escapeHtml(value) {
 }
 
 loadDashboard();
+startDashboardAutoRefresh();

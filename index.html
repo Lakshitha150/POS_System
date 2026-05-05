@@ -125,7 +125,7 @@
                             <ion-icon name="reader-outline"></ion-icon>
                         </div>
                     </div>
-                    <div class="card">
+                    <div class="card" id="pending-customers-card">
                         <div>
                             <div class="numbers" id="pending-count">0</div>
                             <div class="cardName">Pending Customers</div>
@@ -200,14 +200,14 @@
                     <div class="insight-card">
                         <div class="insight-title">
                             <span>Status Summary</span>
-                            <strong id="completed-count">0 Complete</strong>
+                            <strong id="status-total-count">0 Cases</strong>
                         </div>
                         <div id="status-summary-list" class="metric-list"></div>
                     </div>
                     <div class="insight-card">
                         <div class="insight-title">
                             <span>Revenue by Month</span>
-                            <strong id="best-month">No Data</strong>
+                            <strong id="best-month"></strong>
                         </div>
                         <div id="monthly-revenue-list" class="metric-list"></div>
                     </div>
@@ -215,13 +215,32 @@
     
                 <div class="charts">
                     <div class="charts-card">
-                      <h2 class="chart-title">Revenue by Year</h2>
+                      <div class="chart-header">
+                        <h2 class="chart-title" id="revenue-chart-title">Revenue by Year</h2>
+                        <div class="chart-tabs" role="tablist" aria-label="Revenue chart view">
+                            <button class="chart-tab active" id="year-revenue-tab" type="button" data-chart-view="year">Year Revenue</button>
+                            <button class="chart-tab" id="month-revenue-tab" type="button" data-chart-view="month">Monthly Revenue</button>
+                        </div>
+                        <select class="chart-filter-select" id="revenue-chart-year-filter" aria-label="Monthly revenue year">
+                            <option value="">Select Year</option>
+                        </select>
+                        <select class="chart-filter-select" id="revenue-chart-month-filter" aria-label="Monthly revenue month">
+                            <option value="">All Months</option>
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                      </div>
                       <div id="bar-chart"></div>
-                    </div>
-          
-                    <div class="charts-card">
-                      <h2 class="chart-title">Monthly Revenue</h2>
-                      <div id="area-chart"></div>
                     </div>
                 </div>
             </section>
@@ -238,10 +257,52 @@
                     <input type="text" id="quickContactNo" placeholder="Phone Number" required>
                     <input type="text" id="quickPlace" placeholder="Place / Village">
                     <input type="text" id="quickTown" placeholder="Town">
-                    <input type="text" id="quickRepresentative" placeholder="Representative">
+                    <select id="quickRepresentative">
+                        <option value="">Representative</option>
+                    </select>
                     <input type="date" id="quickAppointmentDate" title="Appointment Date">
                     <button type="submit">Quick Add</button>
                 </form>
+
+                <div class="customer-filter-panel">
+                    <div class="customer-filter-main">
+                        <input type="search" id="customer-search-filter" placeholder="Search customer">
+                        <select id="customer-status-filter">
+                            <option value="">All Status</option>
+                        </select>
+                        <button id="customer-more-filters" type="button">More Filters</button>
+                        <button id="customer-clear-filters" type="button">Clear</button>
+                    </div>
+                    <div class="customer-filter-more" id="customer-filter-more">
+                        <select id="customer-town-filter">
+                            <option value="">All Towns</option>
+                        </select>
+                        <select id="customer-place-filter">
+                            <option value="">All Places</option>
+                        </select>
+                        <select id="customer-representative-filter">
+                            <option value="">All Representatives</option>
+                        </select>
+                        <select id="customer-year-filter">
+                            <option value="">All Years</option>
+                        </select>
+                        <select id="customer-month-filter">
+                            <option value="">All Months</option>
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                    </div>
+                </div>
 
                 <!-- -------------- Add Customer Form -------------- -->
                 <div id="customerRegisterForm" class="customerRegisterForm">
@@ -259,7 +320,9 @@
                             </div>
 
                             <div class="customer-form-row">
-                                <input type="text" id="representative" name="representative" placeholder="Representative">
+                                <select id="representative" name="representative">
+                                    <option value="">Representative</option>
+                                </select>
                             </div>
 
                             <div class="customer-form-row">
@@ -328,34 +391,40 @@
                 </div>
 
                 <!-- -------------- Customer Table -------------- -->
-                <table id="customerTable" class="customer-table"> 
-                    <thead>
-                        <tr>
-                            <th>Town</th>
-                            <th>Place</th>
-                            <th>Representative</th>
-                            <th>Customer ID</th>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>Birthday</th>
-                            <th>Contact No</th>
-                            <th>Appointment Date</th>
-                            <th>Prescription</th>
-                            <th>Frame Type</th>
-                            <th>Lens Type</th>
-                            <th>Total Amount</th>
-                            <th>Advanced Payment</th>
-                            <th>Remaining Balance</th>
-                            <th>Order Status</th>
-                            <th>Update</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
+                <div class="customer-table-wrap" id="customer-table-wrap">
+                    <table id="customerTable" class="customer-table"> 
+                        <thead>
+                            <tr>
+                                <th>Town</th>
+                                <th>Place</th>
+                                <th>Representative</th>
+                                <th>Customer ID</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Birthday</th>
+                                <th>Contact No</th>
+                                <th>Appointment Date</th>
+                                <th>Prescription</th>
+                                <th>Frame Type</th>
+                                <th>Lens Type</th>
+                                <th>Total Amount</th>
+                                <th>Advanced Payment</th>
+                                <th>Remaining Balance</th>
+                                <th>Order Status</th>
+                                <th>Update</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
 
-                    <tbody id="customer-table-list">
+                        <tbody id="customer-table-list">
 
-                    </tbody>
-                </table>  
+                        </tbody>
+                    </table>
+                </div>
+                <div class="customer-scroll-dock" id="customer-scroll-dock">
+                    <span>Right details</span>
+                    <input type="range" id="customer-horizontal-scroll" min="0" max="0" value="0">
+                </div>
             </section>
 
             <!-- ------------------------------------ Product Form ------------------------------------ -->
@@ -421,11 +490,19 @@
             
             <!-- ------------------------------------ Order Form ------------------------------------ -->
             <section id="OrdersForm" class="OrdersForm">
-                <h2 class="FormTitle"> Spectacle Orders <span>Manage</span></h2>
-
+                <div class="orders-header">
+                    <div>
+                        <h2 class="FormTitle">Spectacle Orders <span>Manage</span></h2>
+                        <p>Choose frames and lenses, collect payment, then print a counter-ready receipt.</p>
+                    </div>
+                    <div class="orders-date" id="current-date">1 August 2024</div>
+                </div>
                 <div class="OrderFields">
                     <div class="OrdersHeader-section">
-                        <h2 class="menu">Frames & Lenses</h2>
+                        <div class="orders-panel-title">
+                            <h2 class="menu">Frames & Lenses</h2>
+                            <span>Tap item to add</span>
+                        </div>
                         <div class="order-items" id="order-items">
                             <!-- Order items will be injected here by JavaScript -->
                         </div>
@@ -434,10 +511,9 @@
                     <div class="cart-section">
                         <div class="title-orderHeader-contianer">
                             <h2 class="order-title">Create Spectacle Order</h2>
-                            <h4 id="current-date" class="date">1 August 2024</h4>
                         </div>
     
-                        <h3 id="order-id">Order ID: 1</h3>
+                        <h3 id="order-id">New Order</h3>
                         
                         <div class="customer-select-container">
                             <select id="customerDropDown" class="customer-select">
@@ -467,7 +543,7 @@
                                     <input type="text" id="discount">
                                 </div>
                             </div>
-                            <button id="purchase">Save Order</button>
+                            <button id="purchase">Save & Print Receipt</button>
                         </div>
                     </div>
                 </div>
@@ -498,29 +574,38 @@
 
 
     <div id="invoice-modal" style="display:none;">
-    <div id="invoice-content">
-        <h2>TOWN OPTICAL</h2>
+        <div id="invoice-content">
+            <div class="receipt-brand">
+                <h2>BEST BRAND OPTICAL</h2>
+                <p>Optical Sales Receipt</p>
+            </div>
 
-        <p id="inv-order-id"></p>
-        <p id="inv-date"></p>
-        <p id="inv-customer"></p>
+            <div class="receipt-meta">
+                <p id="inv-order-id"></p>
+                <p id="inv-date"></p>
+                <p id="inv-customer"></p>
+            </div>
 
-        <hr>
+            <div class="receipt-rule"></div>
+            <div id="inv-items" class="receipt-items"></div>
+            <div class="receipt-rule"></div>
 
-        <div id="inv-items"></div>
+            <div class="receipt-totals">
+                <p id="inv-subtotal"></p>
+                <p id="inv-discount"></p>
+                <p id="inv-total" class="receipt-grand-total"></p>
+                <p id="inv-cash"></p>
+                <p id="inv-balance"></p>
+            </div>
 
-        <hr>
+            <p class="receipt-footer">Thank you for choosing us</p>
 
-        <p id="inv-subtotal"></p>
-        <p id="inv-discount"></p>
-        <p id="inv-total"></p>
-        <p id="inv-cash"></p>
-        <p id="inv-balance"></p>
-
-        <button onclick="window.print()">Print</button>
-        <button onclick="closeInvoice()">Close</button>
+            <div class="receipt-actions">
+                <button type="button" onclick="window.print()">Print</button>
+                <button type="button" onclick="closeInvoice()">Close</button>
+            </div>
+        </div>
     </div>
-</div>
     
 
 </body>
