@@ -2,7 +2,7 @@ const SPREADSHEET_ID = "1z9stN8WtqIDOJ1BG4vKPMfpKNNj7KQVAWLIYMj857fU";
 
 const SHEETS = {
   products: "Products",
-  customers: "Patients",
+  customers: "Customers",
   orders: "Orders"
 };
 
@@ -16,7 +16,8 @@ function doGet(e) {
     sheets: getSpreadsheet().getSheets().map(sheet => sheet.getName())
   });
   if (type === "products" || type === "product") return json(readSheetObjects(SHEETS.products));
-  if (type === "customers" || type === "customer" || type === "patients" || type === "patient") return json(readSheetObjects(SHEETS.customers));
+  if (type === "customers" || type === "customer") return json(readSheetObjects(SHEETS.customers));
+  if (type === "orders" || type === "order") return json(readSheetObjects(SHEETS.orders));
   if (type === "orderid") return text("ORD-" + Date.now());
   if (type === "dashboard") return json(getDashboardData());
 
@@ -33,8 +34,8 @@ function doPost(e) {
   if (type === "deleteproduct") return json(deleteRow(SHEETS.products, ["pro_id", "productID", "Product ID"], data.pro_id));
 
   if (type === "addcustomer") return json(addRow(SHEETS.customers, customerRow(data)));
-  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["patientID", "Patient ID"], data.originalPatientID || data.patientID, customerRow(data)));
-  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["patientID", "Patient ID"], data.patientID));
+  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["customerID", "Customer ID"], data.originalCustomerID || data.customerID, customerRow(data)));
+  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["customerID", "Customer ID"], data.customerID));
 
   if (type === "order") return json(addRow(SHEETS.orders, orderRow(data)));
 
@@ -61,7 +62,7 @@ function normalizeItem(item) {
     ...item,
     town: item.town || item.Town,
     representative: item.representative || item.Representative,
-    patientID: item.patientID || item.patientId || item["Patient ID"],
+    customerID: item.customerID || item.customerId || item["Customer ID"],
     name: item.name || item.Name,
     age: item.age || item.Age,
     birthday: item.birthday || item.Birthday,
@@ -151,7 +152,7 @@ function customerRow(data) {
   return [
     data.town,
     data.representative,
-    data.patientID,
+    data.customerID,
     data.name,
     data.age,
     data.birthday,
@@ -182,18 +183,34 @@ function orderRow(data) {
 }
 
 function getDashboardData() {
-  const products = readSheetObjects(SHEETS.products);
-  const orders = readSheetObjects(SHEETS.orders);
+  const customers = safeReadSheetObjects(SHEETS.customers);
+  const products = safeReadSheetObjects(SHEETS.products);
+  const orders = safeReadSheetObjects(SHEETS.orders);
+  const pendingOrders = customers.filter(customer => {
+    const status = String(customer.orderStatus || customer["Order Status"] || "").toLowerCase();
+    return status && status !== "delivered";
+  }).length;
 
   return {
+    customersCount: customers.length,
+    productsCount: products.length,
     totalSales: 0,
     totalOrders: orders.length,
     totalProfit: 0,
+    pendingOrders: pendingOrders,
     topProducts: products.slice(0, 5).map(product => ({
       name: product.pro_name,
       count: Number(product.quantity || 0)
     }))
   };
+}
+
+function safeReadSheetObjects(sheetName) {
+  try {
+    return readSheetObjects(sheetName);
+  } catch (error) {
+    return [];
+  }
 }
 
 function getSheet(name) {
@@ -207,7 +224,7 @@ function getSheet(name) {
   ];
 
   if (name === SHEETS.customers) {
-    candidates.push("Customers", "customers", "CUSTOMERS", "Patients", "patients", "PATIENTS");
+    candidates.push("Customers", "customers", "CUSTOMERS");
   }
 
   if (name === SHEETS.products) {

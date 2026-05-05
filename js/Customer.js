@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btn = document.getElementById("customer-submit");
 
     let isUpdate = false;
-    let currentPatientId = null;
+    let currentCustomerId = null;
 
     // ======================
     // TOAST
@@ -29,14 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // ======================
     document.getElementById("add-customer").onclick = () => {
         popup.style.display = "block";
-        title.innerText = "Add Patient";
+        title.innerText = "Add Customer";
     };
 
     document.getElementById("customerRegisterForm-close").onclick = () => {
         popup.style.display = "none";
         form.reset();
         isUpdate = false;
-        currentPatientId = null;
+        currentCustomerId = null;
         btn.innerText = "Submit";
     };
 
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         table.innerHTML = "";
 
         if (!customerDataList.length) {
-            table.innerHTML = `<tr><td colspan="17">No patients found. Check the Google Apps Script deployment.</td></tr>`;
+            table.innerHTML = `<tr><td colspan="17">No customers found. Check the Google Apps Script deployment.</td></tr>`;
             return;
         }
 
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return {
             town: c.town || c.Town || "",
             representative: c.representative || c.Representative || "",
-            patientID: c.patientID || c.patientId || c["Patient ID"] || c.custId || c.customerID || "",
+            customerID: c.customerID || c.customerId || c["Customer ID"] || c.custId || "",
             name: c.name || c.Name || c.custName || c.customerName || "",
             age: c.age || c.Age || "",
             birthday: formatDate(c.birthday || c.Birthday || ""),
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
         row.innerHTML = `
             <td>${c.town}</td>
             <td>${c.representative}</td>
-            <td>${c.patientID}</td>
+            <td>${c.customerID}</td>
             <td>${c.name}</td>
             <td>${c.age}</td>
             <td>${c.birthday}</td>
@@ -113,8 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
         updateBtn.onclick = () => {
             document.getElementById("town").value = c.town;
             document.getElementById("representative").value = c.representative;
-            document.getElementById("patientID").value = c.patientID;
-            document.getElementById("patientName").value = c.name;
+            document.getElementById("customerID").value = c.customerID;
+            document.getElementById("customerName").value = c.name;
             document.getElementById("age").value = c.age;
             document.getElementById("birthday").value = c.birthday;
             document.getElementById("contactNo").value = c.contactNo;
@@ -128,10 +128,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("orderStatus").value = c.orderStatus;
 
             popup.style.display = "block";
-            title.innerText = "Update Patient";
+            title.innerText = "Update Customer";
 
             isUpdate = true;
-            currentPatientId = c.patientID;
+            currentCustomerId = c.customerID;
             btn.innerText = "Update";
         };
 
@@ -139,17 +139,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerText = "Delete";
         deleteBtn.onclick = async () => {
-            if (!confirm("Delete this patient record?")) return;
+            if (!confirm("Delete this customer record?")) return;
 
             await fetch(CUSTOMER_API_URL, {
                 method: "POST",
                 body: JSON.stringify({
                     type: "deleteCustomer",
-                    data: { patientID: c.patientID }
+                    data: { customerID: c.customerID }
                 })
             });
 
-            toast("Patient Deleted");
+            toast("Customer Deleted");
             loadCustomers();
         };
 
@@ -188,8 +188,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = {
             town: document.getElementById("town").value,
             representative: document.getElementById("representative").value,
-            patientID: document.getElementById("patientID").value,
-            name: document.getElementById("patientName").value,
+            customerID: document.getElementById("customerID").value,
+            name: document.getElementById("customerName").value,
             age: document.getElementById("age").value,
             birthday: document.getElementById("birthday").value,
             contactNo: document.getElementById("contactNo").value,
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
             advancedPayment: advancedPayment,
             remainingBalance: Number(remainingBalance.value) || 0,
             orderStatus: document.getElementById("orderStatus").value,
-            originalPatientID: currentPatientId
+            originalCustomerID: currentCustomerId
         };
 
         const type = isUpdate ? "updateCustomer" : "addCustomer";
@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
         popup.style.display = "none";
         form.reset();
         isUpdate = false;
-        currentPatientId = null;
+        currentCustomerId = null;
         btn.innerText = "Submit";
 
         loadCustomers();

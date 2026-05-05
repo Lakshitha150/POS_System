@@ -12,24 +12,32 @@ const DASHBOARD_API_URL = window.API_URL || "https://script.google.com/macros/s/
 async function loadDashboard() {
 
     try {
-        const res = await fetch(DASHBOARD_API_URL + "?type=dashboard");
-        const data = await res.json();
+        const [customers, items, orders, dashboardData] = await Promise.all([
+            window.getCustomers(),
+            window.getProducts(),
+            window.getOrders(),
+            getDashboardData()
+        ]);
 
-        // ======================
-        // KPI VALUES
-        // ======================
-        const totalSales = document.getElementById("total-sales");
-        const totalOrders = document.getElementById("total-orders");
-        const totalProfit = document.getElementById("total-profit");
+        const pendingCustomers = customers.filter(customer => {
+            const status = String(customer.orderStatus || customer["Order Status"] || "").toLowerCase();
+            return status && status !== "delivered";
+        });
 
-        if (totalSales) totalSales.innerText = "Rs " + data.totalSales;
-        if (totalOrders) totalOrders.innerText = data.totalOrders;
-        if (totalProfit) totalProfit.innerText = "Rs " + data.totalProfit;
+        setText("customers-count", dashboardData.customersCount ?? customers.length);
+        setText("items-count", dashboardData.productsCount ?? items.length);
+        setText("orders-count", dashboardData.totalOrders ?? orders.length);
+        setText("pending-count", dashboardData.pendingOrders ?? pendingCustomers.length);
 
         // ======================
         // TOP PRODUCTS CHART
         // ======================
-        const topProducts = Array.isArray(data.topProducts) ? data.topProducts : [];
+        const topProducts = Array.isArray(dashboardData.topProducts) && dashboardData.topProducts.length
+            ? dashboardData.topProducts
+            : items.slice(0, 5).map(item => ({
+                name: item.pro_name || item.productName || item["Product Name"] || item.name || "Item",
+                count: Number(item.quantity || item.Quantity || 0)
+            }));
         let labels = topProducts.map(p => p.name);
         let values = topProducts.map(p => p.count);
 
@@ -37,6 +45,22 @@ async function loadDashboard() {
     } catch (error) {
         console.error("Dashboard load failed:", error);
     }
+}
+
+async function getDashboardData() {
+    try {
+        const res = await fetch(DASHBOARD_API_URL + "?type=dashboard");
+        const data = await res.json();
+        return data && !data.message ? data : {};
+    } catch (error) {
+        console.warn("Dashboard summary endpoint failed, using table data.", error);
+        return {};
+    }
+}
+
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.innerText = value;
 }
 
 

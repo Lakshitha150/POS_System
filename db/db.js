@@ -49,6 +49,11 @@ async function getOrderId() {
     return await res.text();
 }
 
+async function getOrders() {
+    const res = await fetch(window.API_URL + "?type=orders");
+    return await readJsonResponse(res);
+}
+
 // ======================
 // SAVE ORDER
 // ======================
@@ -64,4 +69,5 @@ window.readJsonResponse = readJsonResponse;
 window.getProducts = getProducts;
 window.getCustomers = getCustomers;
 window.getOrderId = getOrderId;
+window.getOrders = getOrders;
 window.saveOrder = saveOrder;

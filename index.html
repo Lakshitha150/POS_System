@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optical Patient Orders</title>
-    <link rel="icon" href="assest/icon/icons8-coffee-shop-64.png">
+    <title>Best Brand Optical</title>
+    <link rel="icon" href="assest/image/BB.jpeg">
     <link rel="stylesheet" href="css/Dashboard.css">
     <link rel="stylesheet" href="css/Customer.css">
     <link rel="stylesheet" href="css/Products.css">
@@ -18,8 +18,8 @@
             <ul>
                 <li>
                     <a href="#">
-                        <span class="icon"><img src="assest/image/DashBoard Logo.png" class="logo"></span>
-                        <span class="title" style="font-size: 1.5em;font-weight: 500; margin-top: 15px;">Town Optical</span>
+                        <span class="icon"><img src="assest/image/BB.jpeg" class="logo"></span>
+                        <span class="title" style="font-size: 1.35em;font-weight: 700; margin-top: 15px;">Best Brand Optical</span>
                     </a>
                 </li>
                 <li class="hovered">
@@ -31,7 +31,7 @@
                 <li>
 					<a href="#" id="CustomerForm-button">
 						<span class="icon"><ion-icon name="people-outline"></ion-icon></span>
-						<span class="title" >Patients</span>
+						<span class="title" >Customers</span>
 					</a>
 				</li>
                 <li>
@@ -83,16 +83,25 @@
                     </div>
                     <!-- userImg -->
                     <div class="user">
-                        <img src="assest/image/User Image.jpg">
+                        <img src="assest/image/BB.jpeg">
                     </div>
 
                 </div>
     
+                <div class="brand-hero">
+                    <div class="brand-copy">
+                        <span>Optical Customer Care</span>
+                        <h1>Best Brand Optical</h1>
+                        <p>Track free eye checks, prescriptions, frames, lenses, payments, and delivery status from one clean dashboard.</p>
+                    </div>
+                    <img src="assest/image/BB.jpeg" alt="Best Brand Optical">
+                </div>
+
                 <div class="cardBox">
                     <div class="card" id="customer">
                         <div>
-                            <div class="numbers">10</div>
-                            <div class="cardName">Patients</div>
+                            <div class="numbers" id="customers-count">0</div>
+                            <div class="cardName">Customers</div>
                         </div>
                         <div class="iconBx">
                             <ion-icon name="people-outline"></ion-icon>
@@ -100,7 +109,7 @@
                     </div>
                     <div class="card" id="product">
                         <div>
-                            <div class="numbers">12</div>
+                            <div class="numbers" id="items-count">0</div>
                             <div class="cardName">Frames & Lenses</div>
                         </div>
                         <div class="iconBx">
@@ -109,7 +118,7 @@
                     </div>
                     <div class="card" id="orders">
                         <div>
-                            <div class="numbers">227</div>
+                            <div class="numbers" id="orders-count">0</div>
                             <div class="cardName">Spectacle Orders</div>
                         </div>
                         <div class="iconBx">
@@ -118,8 +127,8 @@
                     </div>
                     <div class="card">
                         <div>
-                            <div class="numbers">4</div>
-                            <div class="cardName">Employees</div>
+                            <div class="numbers" id="pending-count">0</div>
+                            <div class="cardName">Pending Customers</div>
                         </div>
                         <div class="iconBx">
                             <ion-icon name="accessibility-outline"></ion-icon>
@@ -143,15 +152,15 @@
             <!-- ------------------------------------ Customer Form ------------------------------------ -->
             <section id="CustomerForm">
                 <div id="customerHeaderSection" class="customerHeader-section">
-                    <h2> Patients <span>Manage</span></h2>
-                    <button id="add-customer" class="add-customer-button">Add Patient</button>
+                    <h2> Customers <span>Manage</span></h2>
+                    <button id="add-customer" class="add-customer-button">Add Customer</button>
                 </div>
 
                 <!-- -------------- Add Customer Form -------------- -->
                 <div id="customerRegisterForm" class="customerRegisterForm">
                     <div class="registerForm">
                         <span id="customerRegisterForm-close" class="customer-close">&times;</span>
-                        <h2 id="registerTitle">Register Patient</h2>
+                        <h2 id="registerTitle">Register Customer</h2>
 
                         <form id="customer-form" class="customer-form">
                             <div class="customer-form-row">
@@ -163,11 +172,11 @@
                             </div>
 
                             <div class="customer-form-row">
-                                <input type="text" id="patientID" name="patientID" placeholder="Patient ID" required>
+                                <input type="text" id="customerID" name="customerID" placeholder="Customer ID" required>
                             </div>
 
                             <div class="customer-form-row">
-                                <input type="text" id="patientName" name="patientName" placeholder="Name" required>
+                                <input type="text" id="customerName" name="customerName" placeholder="Name" required>
                             </div>
 
                             <div class="customer-form-row">
@@ -233,7 +242,7 @@
                         <tr>
                             <th>Town</th>
                             <th>Representative</th>
-                            <th>Patient ID</th>
+                            <th>Customer ID</th>
                             <th>Name</th>
                             <th>Age</th>
                             <th>Birthday</th>
@@ -340,7 +349,7 @@
                         
                         <div class="customer-select-container">
                             <select id="customerDropDown" class="customer-select">
-                                <option value="">Select Patient</option>
+                                <option value="">Select Customer</option>
                             </select>
                             <!-- <p id="name-holder">Name:</p> -->
                         </div>

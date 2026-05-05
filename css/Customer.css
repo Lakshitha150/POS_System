@@ -1,53 +1,58 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
-#CustomerForm{
+#CustomerForm {
     display: none;
     overflow-x: auto;
 }
 
-.customerHeader-section{
+.customerHeader-section {
     display: flex;
-    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     margin-top: 10px;
+    padding: 0 22px;
 }
 
-.customerHeader-section h2{
-    margin-left: 40px;
+.customerHeader-section h2 {
+    margin-left: 0;
     font-size: 35px;
-    color: #7f5539;
+    color: #12343b;
 }
 
-.customerHeader-section h2 span{
+.customerHeader-section h2 span {
     font-size: 25px;
-    color: #b08968;
+    color: #0f766e;
 }
 
-.add-customer-button{
-    margin-left: 55%;
+.add-customer-button {
+    margin-left: 0;
     margin-top: 5px;
-    padding: 12px;
+    padding: 12px 18px;
     font-size: 15px;
     font-weight: bolder;
-    border-radius: 20px;
+    border-radius: 8px;
     color: white;
-    background: #b08968;
-    border: 1px solid #b08968;
+    background: #0f766e;
+    border: 1px solid #0f766e;
+    box-shadow: 0 10px 22px rgba(15, 118, 110, 0.2);
 }
 
-.add-customer-button:hover{
+.add-customer-button:hover {
     cursor: pointer;
-    background: #f8e7d6;
-    color: #7f5539;
+    background: #12343b;
+    color: white;
 }
 
-/* ------------------ customer Register Form ------------------ */
-
-.customerRegisterForm{
+.customerRegisterForm {
     display: none;
-    position: fixed; 
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(18, 52, 59, 0.35);
+    backdrop-filter: blur(2px);
 }
 
-.registerForm{
+.registerForm {
     padding: 10px;
     margin-top: 20px;
     margin-left: 40px;
@@ -55,37 +60,39 @@
     max-height: 82vh;
     width: min(920px, 88vw);
     overflow-y: auto;
-    background-color: #f8e7d6;
+    background-color: #ffffff;
+    border: 1px solid #d7e8e6;
+    box-shadow: 0 24px 60px rgba(18, 52, 59, 0.22);
 }
 
-.customer-close{
+.customer-close {
     float: right;
     margin-right: 10px;
     font-size: 20px;
     font-weight: bold;
-    color: #7f5539;
+    color: #12343b;
 }
 
 .customer-close:hover,
-.customer-close:focus{
+.customer-close:focus {
     text-decoration: none;
     cursor: pointer;
     color: rgb(255, 25, 25);
 }
 
-.registerForm h2{
+.registerForm h2 {
     font-size: 20px;
     margin-top: 10px;
     font-weight: bold;
-    color: #7f5539;
+    color: #12343b;
     text-align: center;
 }
 
-.registerForm img{
+.registerForm img {
     display: none;
 }
 
-.customer-form{
+.customer-form {
     display: grid;
     grid-template-columns: repeat(3, minmax(180px, 1fr));
     gap: 12px;
@@ -94,80 +101,93 @@
 }
 
 .customer-form input,
-.customer-form select{
+.customer-form select {
     width: 100%;
     padding: 8px;
     border-radius: 8px;
-    color: #7f5539;
+    color: #12343b;
     background-color: white;
-    border: none;
+    border: 1px solid #d7e8e6;
     font-weight: 500;
 }
 
-.customer-form button{
-    width: 90px;
-    height: 28px;
+.customer-form button {
+    width: 110px;
+    height: 32px;
     margin-top: 4px;
     font-size: 12px;
     font-weight: 600;
-    border-radius: 15px;
+    border-radius: 8px;
     color: white;
-    background: #b08968;
-    border: 1px solid #b08968;
+    background: #0f766e;
+    border: 1px solid #0f766e;
     grid-column: 2;
     justify-self: center;
 }
 
-.customer-form button:hover{
+.customer-form button:hover {
     cursor: pointer;
-    background: #f8e7d6;
-    color: #7f5539;
+    background: #12343b;
+    color: white;
 }
 
-.customer-form-row input:focus{
-    outline: 2px solid #b08968;
+.customer-form-row input:focus,
+.customer-form-row select:focus {
+    outline: 2px solid #d59f32;
 }
 
-/* ------------------ customer Details Table ------------------ */
-.customer-table{
+.customer-table {
     min-width: 1800px;
     width: max-content;
     border-collapse: separate;
     border-spacing: 0;
     margin-left: 22px;
-    margin-top: 60px;
-    color: #7f5539;
+    margin-top: 30px;
+    color: #12343b;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 12px 28px rgba(18, 52, 59, 0.08);
 }
 
 .customer-table th,
-.customer-table td{
+.customer-table td {
     padding: 8px;
-    /* border: 1px solid #b08968; */
     text-align: center;
     white-space: nowrap;
-
 }
 
-.customer-table th{
-    background-color: #f8e7d6;
+.customer-table th {
+    background-color: #eef8f7;
+    color: #12343b;
+    position: sticky;
+    top: 0;
 }
 
-.action-button{
+.customer-table tbody tr:nth-child(even) {
+    background: #f8fbfb;
+}
+
+.customer-table tbody tr:hover {
+    background: #fff7e4;
+}
+
+.action-button {
     height: 32px;
     width: 90px;
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    border-radius: 9px;
+    border-radius: 8px;
     color: white;
-    background: #b08968;
-    border: 1px solid #b08968;
+    background: #0f766e;
+    border: 1px solid #0f766e;
 }
 
-.action-button:hover{
+.action-button:hover {
     cursor: pointer;
-    background: #f8e7d6;
-    color: #7f5539;
+    background: #12343b;
+    color: white;
 }
 
 .toast {
@@ -176,12 +196,12 @@
     background-color: #333;
     color: #fff;
     text-align: center;
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 16px;
     position: fixed;
     z-index: 9999;
-    right: 30px; 
-    top: 30px; 
+    right: 30px;
+    top: 30px;
     font-size: 17px;
     opacity: 0;
     transition: opacity 0.3s, top 0.3s;
@@ -190,13 +210,13 @@
 .toast.show {
     visibility: visible;
     opacity: 1;
-    top: 50px; /* Slight movement when shown */
+    top: 50px;
 }
 
 .toast.success {
-    background-color: rgb(103, 231, 103);
+    background-color: rgb(66, 170, 128);
 }
 
 .toast.error {
-    background-color: rgb(245, 111, 111);
+    background-color: rgb(218, 82, 82);
 }

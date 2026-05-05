@@ -37,7 +37,7 @@ document.getElementById("Settings-button").addEventListener("click", function ()
 });
 
 document.getElementById("Help-button").addEventListener("click", function () {
-    showToast("Use Patients to record free eye checks, prescription, frame, lens, payment, and order status.");
+    showToast("Use Customers to record free eye checks, prescription, frame, lens, payment, and order status.");
 });
 
 document.getElementById("SignOutForm-button").addEventListener("click", function () {
