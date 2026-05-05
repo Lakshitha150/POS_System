@@ -136,10 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const clearButton = document.getElementById("customer-clear-filters");
         if (clearButton && !clearButton.dataset.bound) {
             clearButton.addEventListener("click", () => {
-                filterIds.forEach(id => {
-                    const element = document.getElementById(id);
-                    if (element) element.value = "";
-                });
+                resetCustomerFilters();
                 applyCustomerFilters();
             });
             clearButton.dataset.bound = "true";
@@ -218,12 +215,24 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     window.showAllCustomers = function () {
+        resetCustomerFilters();
+        applyCustomerFilters();
+    };
+
+    function resetCustomerFilters() {
         filterIds.forEach(id => {
             const element = document.getElementById(id);
             if (element) element.value = "";
         });
-        applyCustomerFilters();
-    };
+
+        const moreButton = document.getElementById("customer-more-filters");
+        const moreFilters = document.getElementById("customer-filter-more");
+        if (moreFilters) moreFilters.classList.remove("open");
+        if (moreButton) moreButton.innerText = "More Filters";
+
+        if (tableWrap) tableWrap.scrollLeft = 0;
+        if (horizontalScroll) horizontalScroll.value = "0";
+    }
 
     function parseCustomerDate(value) {
         if (!value) return null;
