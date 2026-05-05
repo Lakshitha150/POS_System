@@ -44,12 +44,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // LOAD CUSTOMERS
     // ======================
     async function loadCustomers() {
-        const res = await fetch(CUSTOMER_API_URL + "?type=customers");
-        customerDataList = await res.json();
+        customerDataList = await window.getCustomers();
 
         table.innerHTML = "";
 
-        customerDataList.forEach(c => renderRow(c));
+        if (!customerDataList.length) {
+            table.innerHTML = `<tr><td colspan="6">No customers found. Check the Google Apps Script deployment.</td></tr>`;
+            return;
+        }
+
+        customerDataList.forEach(c => renderRow(normalizeCustomer(c)));
+    }
+
+    function normalizeCustomer(c) {
+        return {
+            custId: c.custId || c.customerID || c.customerId || c.id || c["Customer ID"] || "",
+            custName: c.custName || c.customerName || c.name || c["Name"] || c["Full Name"] || "",
+            custAddress: c.custAddress || c.customerAddress || c.address || c["Address"] || "",
+            custContact: c.custContact || c.customerNumber || c.contact || c.mobile || c["Contact Number"] || c["Mobile Number"] || ""
+        };
     }
 
     // ======================
@@ -128,7 +141,8 @@ document.addEventListener("DOMContentLoaded", function () {
             custId: document.getElementById("customerID").value,
             custName: document.getElementById("customerName").value,
             custAddress: document.getElementById("customerAddress").value,
-            custContact: document.getElementById("customerNumber").value
+            custContact: document.getElementById("customerNumber").value,
+            originalCustContact: currentContact
         };
 
         const type = isUpdate ? "updateCustomer" : "addCustomer";

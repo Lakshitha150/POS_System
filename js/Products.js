@@ -49,7 +49,22 @@ $(document).ready(function () {
 
         $table.empty();
 
-        productDataList.forEach(p => renderRow(p));
+        if (!productDataList.length) {
+            $table.html(`<tr><td colspan="7">No products found. Check the Google Apps Script deployment.</td></tr>`);
+            return;
+        }
+
+        productDataList.forEach(p => renderRow(normalizeProduct(p)));
+    }
+
+    function normalizeProduct(p) {
+        return {
+            pro_id: p.pro_id || p.productID || p.productId || p.id || p["Product ID"] || "",
+            pro_name: p.pro_name || p.productName || p.name || p.product || p["Product"] || p["Product Name"] || "",
+            price: p.price || p.Price || p["Price"] || 0,
+            category: p.category || p.Category || p["Category"] || "",
+            quantity: p.quantity || p.qty || p.Quantity || p["Quantity"] || 0
+        };
     }
 
     // ======================
@@ -119,7 +134,8 @@ $(document).ready(function () {
             pro_name: $("#productName").val(),
             price: $("#price").val(),
             category: $("#category").val(),
-            quantity: $("#quantity").val()
+            quantity: $("#quantity").val(),
+            originalProId: currentId
         };
 
         let type = isUpdate ? "updateProduct" : "addProduct";

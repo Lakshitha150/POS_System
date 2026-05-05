@@ -23,11 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // ======================
     async function loadProducts() {
         const res = await fetch(ORDER_API_URL + "?type=products");
-        productList = await res.json();
+        productList = await window.readJsonResponse(res);
 
         productBox.innerHTML = "";
 
         productList.forEach(p => {
+            p = normalizeProduct(p);
             const div = document.createElement("div");
             div.className = "product-card";
 
@@ -48,16 +49,33 @@ document.addEventListener("DOMContentLoaded", function () {
     // ======================
     async function loadCustomers() {
         const res = await fetch(ORDER_API_URL + "?type=customers");
-        customerList = await res.json();
+        customerList = await window.readJsonResponse(res);
 
         customerSelect.innerHTML = `<option value="">Select Customer</option>`;
 
         customerList.forEach(c => {
+            c = normalizeCustomer(c);
             const opt = document.createElement("option");
             opt.value = c.custContact;
             opt.textContent = c.custContact;
             customerSelect.appendChild(opt);
         });
+    }
+
+    function normalizeProduct(p) {
+        return {
+            pro_id: p.pro_id || p.productID || p.productId || p.id || p["Product ID"] || "",
+            pro_name: p.pro_name || p.productName || p.name || p.product || p["Product"] || p["Product Name"] || "",
+            price: Number(p.price || p.Price || p["Price"] || 0),
+            category: p.category || p.Category || p["Category"] || "",
+            quantity: Number(p.quantity || p.qty || p.Quantity || p["Quantity"] || 0)
+        };
+    }
+
+    function normalizeCustomer(c) {
+        return {
+            custContact: c.custContact || c.customerNumber || c.contact || c.mobile || c["Contact Number"] || c["Mobile Number"] || ""
+        };
     }
 
     // ======================

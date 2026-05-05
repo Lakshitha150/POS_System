@@ -9,12 +9,28 @@ async function postToGoogleScript(payload) {
     return await res.json();
 }
 
+async function readJsonResponse(res, fallback = []) {
+    const data = await res.json();
+
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.rows)) return data.rows;
+    if (Array.isArray(data.products)) return data.products;
+    if (Array.isArray(data.customers)) return data.customers;
+
+    if (data && data.message) {
+        console.error("Google Script response:", data.message);
+    }
+
+    return fallback;
+}
+
 // ======================
 // PRODUCTS
 // ======================
 async function getProducts() {
     const res = await fetch(window.API_URL + "?type=products");
-    return await res.json();
+    return await readJsonResponse(res);
 }
 
 // ======================
@@ -22,7 +38,7 @@ async function getProducts() {
 // ======================
 async function getCustomers() {
     const res = await fetch(window.API_URL + "?type=customers");
-    return await res.json();
+    return await readJsonResponse(res);
 }
 
 // ======================
@@ -44,6 +60,7 @@ async function saveOrder(order) {
 }
 
 window.postToGoogleScript = postToGoogleScript;
+window.readJsonResponse = readJsonResponse;
 window.getProducts = getProducts;
 window.getCustomers = getCustomers;
 window.getOrderId = getOrderId;
