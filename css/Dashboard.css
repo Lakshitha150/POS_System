@@ -136,6 +136,11 @@ body
 	width: 80px;
 }
 
+.mobile-nav-backdrop
+{
+	display: none;
+}
+
 .navigation ul
 {
 	position: absolute;
@@ -739,6 +744,15 @@ body
 
 @media (max-width: 900px)
 {
+	.mobile-nav-backdrop.active
+	{
+		display: block;
+		position: fixed;
+		inset: 0;
+		background: transparent;
+		z-index: 999;
+	}
+
 	.cardBox,
 	.charts,
 	.dashboard-filters,

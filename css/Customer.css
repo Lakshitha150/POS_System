@@ -279,6 +279,34 @@
     accent-color: #0f766e;
 }
 
+.customer-go-top {
+    position: fixed;
+    right: 24px;
+    bottom: 86px;
+    z-index: 901;
+    display: none;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d59f32;
+    border-radius: 50%;
+    background: #d59f32;
+    color: #ffffff;
+    font-size: 1.45rem;
+    box-shadow: 0 14px 28px rgba(18, 52, 59, 0.22);
+    cursor: pointer;
+}
+
+.customer-go-top.visible {
+    display: flex;
+}
+
+.customer-go-top:hover {
+    background: #12343b;
+    border-color: #12343b;
+}
+
 .customer-table th,
 .customer-table td {
     padding: 8px;
@@ -392,5 +420,10 @@
     .customer-scroll-dock {
         right: 12px;
         bottom: 12px;
+    }
+
+    .customer-go-top {
+        right: 14px;
+        bottom: 78px;
     }
 }

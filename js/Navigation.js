@@ -24,10 +24,22 @@ function setActiveNav(buttonId) {
 }
 
 function closeMobileNavigation() {
+    document.getElementById("mobileNavBackdrop").classList.remove("active");
     if (!window.matchMedia("(max-width: 900px)").matches) return;
 
     document.getElementById("navigation").classList.remove("active");
     document.querySelector(".main").classList.remove("active");
+}
+
+function toggleMobileNavigation() {
+    const navigation = document.getElementById("navigation");
+    const main = document.querySelector(".main");
+    const backdrop = document.getElementById("mobileNavBackdrop");
+    const isOpen = navigation.classList.toggle("active");
+    const isMobile = window.matchMedia("(max-width: 900px)").matches;
+
+    main.classList.toggle("active", isOpen);
+    backdrop.classList.toggle("active", isOpen && isMobile);
 }
 
 function openSection(sectionId, buttonId) {
@@ -70,8 +82,20 @@ document.querySelectorAll(".page-back-button").forEach(button => {
 });
 
 document.querySelector(".toggle").addEventListener("click", function () {
-    document.getElementById("navigation").classList.toggle("active");
-    document.querySelector(".main").classList.toggle("active");
+    toggleMobileNavigation();
+});
+
+document.getElementById("mobileNavBackdrop").addEventListener("click", closeMobileNavigation);
+
+window.addEventListener("resize", function () {
+    if (!window.matchMedia("(max-width: 900px)").matches) {
+        document.getElementById("mobileNavBackdrop").classList.remove("active");
+        return;
+    }
+
+    if (document.getElementById("navigation").classList.contains("active")) {
+        document.getElementById("mobileNavBackdrop").classList.add("active");
+    }
 });
 
 document.getElementById("Settings-button").addEventListener("click", function () {

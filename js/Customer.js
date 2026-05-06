@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableWrap = document.getElementById("customer-table-wrap");
     const scrollDock = document.getElementById("customer-scroll-dock");
     const horizontalScroll = document.getElementById("customer-horizontal-scroll");
+    const goTopButton = document.getElementById("customer-go-top");
     const popup = document.getElementById("customerRegisterForm");
     const title = document.getElementById("registerTitle");
     const btn = document.getElementById("customer-submit");
@@ -271,9 +272,35 @@ document.addEventListener("DOMContentLoaded", function () {
         horizontalScroll.max = String(maxScroll);
         horizontalScroll.value = String(Math.min(Math.round(tableWrap.scrollLeft), maxScroll));
         scrollDock.classList.toggle("visible", isCustomerVisible && maxScroll > 0);
+        updateCustomerGoTop();
     }
 
     window.updateCustomerTableScroll = updateCustomerTableScroll;
+
+    function updateCustomerGoTop() {
+        if (!goTopButton) return;
+
+        const customerSection = document.getElementById("CustomerForm");
+        const isCustomerVisible = customerSection && window.getComputedStyle(customerSection).display !== "none";
+
+        goTopButton.classList.toggle("visible", isCustomerVisible && window.scrollY > 260);
+    }
+
+    if (goTopButton) {
+        goTopButton.addEventListener("click", () => {
+            document.getElementById("customerHeaderSection").scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    }
+
+    window.addEventListener("scroll", updateCustomerGoTop);
+    window.addEventListener("resize", updateCustomerGoTop);
+    window.updateCustomerPageControls = function () {
+        updateCustomerTableScroll();
+        updateCustomerGoTop();
+    };
 
     // ======================
     // RENDER ROW
