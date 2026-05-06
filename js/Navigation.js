@@ -23,9 +23,17 @@ function setActiveNav(buttonId) {
     }
 }
 
+function closeMobileNavigation() {
+    if (!window.matchMedia("(max-width: 900px)").matches) return;
+
+    document.getElementById("navigation").classList.remove("active");
+    document.querySelector(".main").classList.remove("active");
+}
+
 function openSection(sectionId, buttonId) {
     showSection(sectionId);
     setActiveNav(buttonId);
+    closeMobileNavigation();
     if (typeof window.updateCustomerTableScroll === "function") {
         window.updateCustomerTableScroll();
     }

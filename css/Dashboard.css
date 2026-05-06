@@ -128,6 +128,7 @@ body
 	box-shadow: 4px 0 24px rgba(18, 52, 59, 0.14);
 	transition: 0.5s;
 	overflow: hidden;
+	z-index: 1000;
 }
 
 .navigation.active 
@@ -731,6 +732,11 @@ body
 		width: 80px;
 	}
 
+	.navigation.active
+	{
+		width: min(300px, 85vw);
+	}
+
 	.main
 	{
 		left: 80px;
@@ -788,8 +794,9 @@ body
 
 	.navigation.active
 	{
-		width: 80px;
+		width: min(300px, 86vw);
 		border-left: 10px solid #12343b;
+		box-shadow: 16px 0 34px rgba(18, 52, 59, 0.26);
 	}
 
 	.main,
