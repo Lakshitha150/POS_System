@@ -256,7 +256,12 @@
             <!-- ------------------------------------ Customer Form ------------------------------------ -->
             <section id="CustomerForm">
                 <div id="customerHeaderSection" class="customerHeader-section">
-                    <h2> Customers <span>Manage</span></h2>
+                    <div class="page-title-row">
+                        <button class="page-back-button" type="button" aria-label="Back to dashboard">
+                            <ion-icon name="arrow-back-outline"></ion-icon>
+                        </button>
+                        <h2> Customers <span>Manage</span></h2>
+                    </div>
                     <button id="add-customer" class="add-customer-button">Add Customer</button>
                 </div>
 
@@ -438,7 +443,12 @@
             <!-- ------------------------------------ Product Form ------------------------------------ -->
             <section id="ProductsForm">
                 <div class="productHeader-section">
-                    <h2> Frames & Lenses <span>Manage</span></h2>
+                    <div class="page-title-row">
+                        <button class="page-back-button" type="button" aria-label="Back to dashboard">
+                            <ion-icon name="arrow-back-outline"></ion-icon>
+                        </button>
+                        <h2> Frames & Lenses <span>Manage</span></h2>
+                    </div>
                     <button id="add-product" class="add-product-button">Add Item</button>
                 </div>
 
@@ -476,32 +486,39 @@
                 </div>
 
                 <!-- -------------- Product Table -------------- -->
-                <table id="productTable" class="product-table"> 
-                    <thead>
-                        <tr>
-                            <th>Item ID</th>
-                            <th>Frame / Lens</th>
-                            <th>Price</th>
-                            <th>Category</th>
-                            <th>Quantity</th>
-                            <th>Update</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
+                <div class="product-table-wrap">
+                    <table id="productTable" class="product-table"> 
+                        <thead>
+                            <tr>
+                                <th>Item ID</th>
+                                <th>Frame / Lens</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Update</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
 
-                    <tbody id="product-table-list">
+                        <tbody id="product-table-list">
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
 
             </section>
             
             <!-- ------------------------------------ Order Form ------------------------------------ -->
             <section id="OrdersForm" class="OrdersForm">
                 <div class="orders-header">
-                    <div>
+                    <div class="page-title-row">
+                        <button class="page-back-button" type="button" aria-label="Back to dashboard">
+                            <ion-icon name="arrow-back-outline"></ion-icon>
+                        </button>
+                        <div>
                         <h2 class="FormTitle">Spectacle Orders <span>Manage</span></h2>
                         <p>Choose frames and lenses, collect payment, then print a counter-ready receipt.</p>
+                        </div>
                     </div>
                     <div class="orders-date" id="current-date">1 August 2024</div>
                 </div>

@@ -63,6 +63,12 @@ document.getElementById("OrdersForm-button").addEventListener("click", function 
     openSection("OrdersForm", "OrdersForm-button");
 });
 
+document.querySelectorAll(".page-back-button").forEach(button => {
+    button.addEventListener("click", function () {
+        openSection("DashboardForm", "Dashboard-button");
+    });
+});
+
 document.querySelector(".toggle").addEventListener("click", function () {
     document.getElementById("navigation").classList.toggle("active");
     document.querySelector(".main").classList.toggle("active");
