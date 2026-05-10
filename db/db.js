@@ -1,9 +1,17 @@
 window.API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 async function postToGoogleScript(payload) {
+    const body = {
+        ...payload,
+        sessionToken: window.getSessionToken ? window.getSessionToken() : ""
+    };
+
     const res = await fetch(window.API_URL, {
         method: "POST",
-        body: JSON.stringify(payload)
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(body)
     });
 
     return await res.json();
@@ -29,7 +37,7 @@ async function readJsonResponse(res, fallback = []) {
 // PRODUCTS
 // ======================
 async function getProducts() {
-    const res = await fetch(window.API_URL + "?type=products");
+    const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "products" }) : (window.API_URL + "?type=products"));
     return await readJsonResponse(res);
 }
 
@@ -37,7 +45,7 @@ async function getProducts() {
 // CUSTOMERS
 // ======================
 async function getCustomers() {
-    const res = await fetch(window.API_URL + "?type=customers");
+    const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "customers" }) : (window.API_URL + "?type=customers"));
     return await readJsonResponse(res);
 }
 
@@ -45,17 +53,17 @@ async function getCustomers() {
 // ORDER ID
 // ======================
 async function getOrderId() {
-    const res = await fetch(window.API_URL + "?type=orderId");
+    const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "orderId" }) : (window.API_URL + "?type=orderId"));
     return await res.text();
 }
 
 async function getOrders() {
-    const res = await fetch(window.API_URL + "?type=orders");
+    const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "orders" }) : (window.API_URL + "?type=orders"));
     return await readJsonResponse(res);
 }
 
 async function getPlaces() {
-    const res = await fetch(window.API_URL + "?type=places");
+    const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "places" }) : (window.API_URL + "?type=places"));
     return await readJsonResponse(res);
 }
 

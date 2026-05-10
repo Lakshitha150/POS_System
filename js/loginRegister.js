@@ -8,6 +8,8 @@ const loadingOverlay = document.getElementById("loadingOverlay");
 const usernameInput = document.getElementById("email-login");
 const passwordInput = document.getElementById("password-login");
 const rememberCheckbox = document.getElementById("remember-login");
+const destinationInputs = document.querySelectorAll("input[name='login-destination']");
+const DESTINATION_KEY = "loginDestination";
 
 restoreRememberedLogin();
 redirectIfRememberedSessionExists();
@@ -20,6 +22,7 @@ loginForm.addEventListener("submit", function(event) {
 loginButton.addEventListener("click", async () => {
     const username = usernameInput.value.trim();
     const password = passwordInput.value;
+    const destination = getPreferredDestination();
 
     if (!username || !password) {
         showToast("Enter username and password.", "error");
@@ -41,13 +44,15 @@ loginButton.addEventListener("click", async () => {
         if (rememberCheckbox.checked) {
             localStorage.setItem(REMEMBER_KEY, "true");
             localStorage.setItem(SAVED_USERNAME_KEY, username);
+            localStorage.setItem(DESTINATION_KEY, destination);
         } else {
             localStorage.removeItem(REMEMBER_KEY);
             localStorage.removeItem(SAVED_USERNAME_KEY);
+            localStorage.setItem(DESTINATION_KEY, destination);
         }
 
         showToast("Logged in successfully!", "success");
-        window.location.href = "index.html";
+        window.location.href = destination;
     } catch (error) {
         showToast(error.message || "Invalid username or password.", "error");
         loadingOverlay.style.display = "none";
@@ -57,11 +62,16 @@ loginButton.addEventListener("click", async () => {
 function restoreRememberedLogin() {
     const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
     const savedUsername = localStorage.getItem(SAVED_USERNAME_KEY) || "";
+    const savedDestination = getRedirectTargetFromUrl() || localStorage.getItem(DESTINATION_KEY) || "index.html";
 
     rememberCheckbox.checked = remembered;
     if (savedUsername) {
         usernameInput.value = savedUsername;
     }
+
+    destinationInputs.forEach(input => {
+        input.checked = input.value === savedDestination;
+    });
 }
 
 function redirectIfRememberedSessionExists() {
@@ -77,7 +87,7 @@ function redirectIfRememberedSessionExists() {
     validateSession(sessionToken)
         .then(function(result) {
             if (result && result.success === true) {
-                window.location.href = "index.html";
+                window.location.href = getPreferredDestination();
                 return;
             }
 
@@ -129,6 +139,28 @@ function loginWithSheet(username, password) {
 function clearRememberedSession() {
     localStorage.removeItem("user");
     localStorage.removeItem("sessionToken");
+}
+
+function getRedirectTargetFromUrl() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const target = params.get("redirect");
+        if (target === "index.html" || target === "Fill_APP.html") {
+            return target;
+        }
+    } catch (error) {
+        return "";
+    }
+
+    return "";
+}
+
+function getPreferredDestination() {
+    const redirectTarget = getRedirectTargetFromUrl();
+    if (redirectTarget) return redirectTarget;
+
+    const selected = Array.from(destinationInputs).find(input => input.checked);
+    return (selected && selected.value) || localStorage.getItem(DESTINATION_KEY) || "index.html";
 }
 
 function showToast(message, type) {

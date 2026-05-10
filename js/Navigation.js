@@ -114,7 +114,13 @@ document.getElementById("SignOutForm-button").addEventListener("click", function
         return;
     }
 
+    if (window.logout) {
+        window.logout("loginRegister.html");
+        return;
+    }
+
     localStorage.removeItem("user");
+    localStorage.removeItem("sessionToken");
     window.location.href = "loginRegister.html";
 });
 
@@ -133,7 +139,9 @@ document.getElementById("orders").addEventListener("click", function (){
 
 const navigationUser = JSON.parse(localStorage.getItem("user"));
 
-if (navigationUser && navigationUser.role !== "admin") {
+window.applyCurrentUserUI && window.applyCurrentUserUI();
+
+if (navigationUser && (window.getUserPrivilege ? window.getUserPrivilege(navigationUser) : navigationUser.role) !== "admin") {
     document.getElementById("CustomerForm-button").style.display = "none";
 }
 

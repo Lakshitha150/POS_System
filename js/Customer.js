@@ -1,6 +1,9 @@
 const CUSTOMER_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 let customerDataList = [];
+const currentCustomerUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem("user") || "null");
+const currentRepresentativeName = window.getUserDisplayName ? window.getUserDisplayName(currentCustomerUser) : ((currentCustomerUser && (currentCustomerUser.name || currentCustomerUser.username)) || "");
+const customerIsAdmin = (window.getUserPrivilege ? window.getUserPrivilege(currentCustomerUser) : ((currentCustomerUser && currentCustomerUser.role) || "")).toLowerCase() === "admin";
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -44,6 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("add-customer").onclick = () => {
         popup.style.display = "block";
         title.innerText = "Add Customer";
+        applyLoggedInRepresentative();
     };
 
     document.getElementById("customerRegisterForm-close").onclick = () => {
@@ -115,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fillSelect("customer-year-filter", unique(customers.map(customer => getCustomerYear(customer))).sort(), "All Years");
         fillSelect("quickRepresentative", representatives, "Representative");
         fillSelect("representative", representatives, "Representative");
+        applyLoggedInRepresentative();
 
         filterIds.forEach(id => {
             const element = document.getElementById(id);
@@ -166,6 +171,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if ([...select.options].some(option => option.value === currentValue)) {
             select.value = currentValue;
         }
+    }
+
+    function applyLoggedInRepresentative() {
+        ["quickRepresentative", "representative"].forEach(id => {
+            const field = document.getElementById(id);
+            if (!field) return;
+
+            if (window.ensureRepresentativeValue) {
+                window.ensureRepresentativeValue(field, currentRepresentativeName, customerIsAdmin);
+            }
+
+            if (!customerIsAdmin) {
+                field.value = currentRepresentativeName;
+                field.disabled = true;
+            }
+        });
     }
 
     function applyCustomerFilters() {
@@ -362,20 +383,17 @@ document.addEventListener("DOMContentLoaded", function () {
         deleteBtn.onclick = async () => {
             if (!confirm("Delete this customer record?")) return;
 
-            await fetch(CUSTOMER_API_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    type: "deleteCustomer",
-                    data: { customerID: c.customerID }
-                })
+            await window.postToGoogleScript({
+                type: "deleteCustomer",
+                data: { customerID: c.customerID }
             });
 
             toast("Customer Deleted");
             loadCustomers();
         };
 
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user.role !== "admin") {
+        const user = currentCustomerUser;
+        if (user && !customerIsAdmin) {
             updateBtn.style.display = "none";
             deleteBtn.style.display = "none";
         }
@@ -401,7 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = {
             town: document.getElementById("quickTown").value,
             place: document.getElementById("quickPlace").value,
-            representative: document.getElementById("quickRepresentative").value,
+            representative: document.getElementById("quickRepresentative").value || currentRepresentativeName,
             customerID: "C-" + Date.now(),
             name: document.getElementById("quickCustomerName").value,
             contactNo: document.getElementById("quickContactNo").value,
@@ -412,16 +430,14 @@ document.addEventListener("DOMContentLoaded", function () {
             remainingBalance: 0
         };
 
-        await fetch(CUSTOMER_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                type: "addCustomer",
-                data: customer
-            })
+        await window.postToGoogleScript({
+            type: "addCustomer",
+            data: customer
         });
 
         toast("Quick customer added");
         quickForm.reset();
+        applyLoggedInRepresentative();
         loadCustomers();
     });
 
@@ -442,7 +458,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = {
             town: document.getElementById("town").value,
             place: document.getElementById("place").value,
-            representative: document.getElementById("representative").value,
+            representative: document.getElementById("representative").value || currentRepresentativeName,
             customerID: document.getElementById("customerID").value,
             name: document.getElementById("customerName").value,
             age: document.getElementById("age").value,
@@ -461,18 +477,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const type = isUpdate ? "updateCustomer" : "addCustomer";
 
-        await fetch(CUSTOMER_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                type,
-                data: customer
-            })
+        await window.postToGoogleScript({
+            type,
+            data: customer
         });
 
         toast(isUpdate ? "Updated" : "Added");
 
         popup.style.display = "none";
         form.reset();
+        applyLoggedInRepresentative();
         isUpdate = false;
         currentCustomerId = null;
         btn.innerText = "Submit";

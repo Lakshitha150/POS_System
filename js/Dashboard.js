@@ -1,10 +1,13 @@
 const dashboardUser = JSON.parse(localStorage.getItem("user"));
 
 if (!dashboardUser) {
-    window.location.href = "loginRegister.html";
+    window.location.href = window.buildLoginUrl ? window.buildLoginUrl("index.html") : "loginRegister.html?redirect=index.html";
 }
 
-if (dashboardUser.role !== "admin") {
+window.requireLogin && window.requireLogin("index.html");
+window.applyCurrentUserUI && window.applyCurrentUserUI();
+
+if ((window.getUserPrivilege ? window.getUserPrivilege(dashboardUser) : dashboardUser.role) !== "admin") {
     console.log("Cashier mode - limited access");
 }
 
@@ -58,7 +61,7 @@ function startDashboardAutoRefresh() {
 
 async function getDashboardData() {
     try {
-        const res = await fetch(DASHBOARD_API_URL + "?type=dashboard");
+        const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "dashboard" }) : (DASHBOARD_API_URL + "?type=dashboard"));
         const data = await res.json();
         return data && !data.message ? data : {};
     } catch (error) {

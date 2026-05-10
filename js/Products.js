@@ -105,12 +105,9 @@ $(document).ready(function () {
             .on("click", async () => {
                 if (!confirm("Delete this product?")) return;
 
-                await fetch(PRODUCT_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        type: "deleteProduct",
-                        data: { pro_id: p.pro_id }
-                    })
+                await window.postToGoogleScript({
+                    type: "deleteProduct",
+                    data: { pro_id: p.pro_id }
                 });
 
                 toast("Deleted Successfully");
@@ -140,12 +137,9 @@ $(document).ready(function () {
 
         let type = isUpdate ? "updateProduct" : "addProduct";
 
-        await fetch(PRODUCT_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                type,
-                data: product
-            })
+        await window.postToGoogleScript({
+            type,
+            data: product
         });
 
         toast(isUpdate ? "Updated Successfully" : "Added Successfully");

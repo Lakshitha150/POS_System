@@ -68,6 +68,14 @@
       margin-bottom: 18px;
     }
 
+    .topbar-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .brand {
       display: flex;
       align-items: center;
@@ -117,6 +125,27 @@
       gap: 8px;
       padding: 8px 12px;
       box-shadow: 0 8px 20px rgba(18, 32, 51, 0.06);
+    }
+
+    .session-pill {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 20px rgba(18, 32, 51, 0.06);
+      display: grid;
+      gap: 2px;
+    }
+
+    .session-pill strong {
+      font-size: 13px;
+      line-height: 1.1;
+    }
+
+    .session-pill span {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: capitalize;
     }
 
     .dot {
@@ -326,6 +355,10 @@
       background: var(--amber);
     }
 
+    .btn-neutral {
+      background: #334155;
+    }
+
     .status {
       border-top: 1px solid var(--line);
       color: var(--muted);
@@ -463,9 +496,16 @@
         </div>
       </div>
 
-      <div class="connection-pill" id="connectionPill">
-        <span class="dot" id="connectionDot"></span>
-        <span id="connectionText">Online</span>
+      <div class="topbar-side">
+        <div class="session-pill">
+          <strong data-auth-name>Representative</strong>
+          <span data-auth-privilege>viewer</span>
+        </div>
+        <div class="connection-pill" id="connectionPill">
+          <span class="dot" id="connectionDot"></span>
+          <span id="connectionText">Online</span>
+        </div>
+        <button type="button" class="btn btn-neutral" id="signOutButton">Sign Out</button>
       </div>
     </header>
 
@@ -515,7 +555,7 @@
 
               <div class="field">
                 <label for="representative">Representative</label>
-                <input type="text" id="representative" autocomplete="name" required>
+                <input type="text" id="representative" autocomplete="name" required readonly>
                 <label class="keep-row" for="keepRepresentative">
                   <input type="checkbox" id="keepRepresentative">
                   Keep for next customer
@@ -642,10 +682,18 @@
     </div>
   </main>
 
+  <script src="js/auth.js"></script>
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec';
     const STORAGE_KEY = 'opticalOrders';
     const PERSISTENT_KEY = 'campPersistentData';
+    const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
+    const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
+    const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
+
+    if (!currentUser || !sessionToken) {
+      window.location.href = window.buildLoginUrl ? window.buildLoginUrl('Fill_APP.html') : 'loginRegister.html?redirect=Fill_APP.html';
+    }
 
     const form = document.getElementById('opticalForm');
     const statusBox = document.getElementById('statusBox');
@@ -660,8 +708,21 @@
     const totalAmountInput = document.getElementById('totalAmount');
     const advancedPaymentInput = document.getElementById('advancedPayment');
     const remainingBalanceInput = document.getElementById('remainingBalance');
+    const representativeInput = document.getElementById('representative');
+    const signOutButton = document.getElementById('signOutButton');
 
     let editIndex = null;
+
+    window.applyCurrentUserUI && window.applyCurrentUserUI();
+    representativeInput.value = currentRepresentative;
+
+    if (window.requireLogin) {
+      window.requireLogin('Fill_APP.html').then((isAllowed) => {
+        if (isAllowed && currentRepresentative) {
+          representativeInput.value = currentRepresentative;
+        }
+      });
+    }
 
     loadPersistentFields();
     loadOfflineRecords();
@@ -669,6 +730,14 @@
 
     totalAmountInput.addEventListener('input', calculateBalance);
     advancedPaymentInput.addEventListener('input', calculateBalance);
+    signOutButton.addEventListener('click', () => {
+      if (!confirm('Are you sure you want to log out?')) return;
+      if (window.logout) {
+        window.logout('loginRegister.html');
+        return;
+      }
+      window.location.href = 'loginRegister.html';
+    });
 
     form.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -698,7 +767,7 @@
         timestamp: new Date().toISOString(),
         town: getValue('town'),
         place: getValue('place'),
-        representative: getValue('representative'),
+        representative: currentRepresentative || getValue('representative'),
         appointmentDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
@@ -745,7 +814,7 @@
 
       if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
-      if (!document.getElementById('keepRepresentative').checked) document.getElementById('representative').value = '';
+      document.getElementById('representative').value = currentRepresentative || '';
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
@@ -755,11 +824,11 @@
       const persistentData = {
         town: document.getElementById('keepTown').checked ? getValue('town') : '',
         place: document.getElementById('keepPlace').checked ? getValue('place') : '',
-        representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
+        representative: currentRepresentative || '',
         appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
         keepTown: document.getElementById('keepTown').checked,
         keepPlace: document.getElementById('keepPlace').checked,
-        keepRepresentative: document.getElementById('keepRepresentative').checked,
+        keepRepresentative: true,
         keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
       };
 
@@ -772,11 +841,11 @@
 
       document.getElementById('town').value = persistentData.town || '';
       document.getElementById('place').value = persistentData.place || '';
-      document.getElementById('representative').value = persistentData.representative || '';
+      document.getElementById('representative').value = currentRepresentative || persistentData.representative || '';
       document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
       document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
       document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
-      document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
+      document.getElementById('keepRepresentative').checked = true;
       document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
     }
 
@@ -824,7 +893,7 @@
 
       setValue('town', record.town);
       setValue('place', record.place);
-      setValue('representative', record.representative);
+      setValue('representative', currentRepresentative || record.representative);
       setValue('appointmentDate', record.appointmentDate);
       setValue('customerId', record.customerId || record.customerID);
       setValue('name', record.name);
@@ -915,7 +984,8 @@
         },
         body: JSON.stringify({
           type: 'uploadcustomers',
-          data: records
+          data: records,
+          sessionToken: sessionToken
         })
       }).then(response => response.json());
     }

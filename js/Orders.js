@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function loadProducts() {
-        const res = await fetch(ORDER_API_URL + "?type=products");
+        const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "products" }) : (ORDER_API_URL + "?type=products"));
         productList = await window.readJsonResponse(res);
 
         productBox.innerHTML = "";
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function loadCustomers() {
-        const res = await fetch(ORDER_API_URL + "?type=customers");
+        const res = await fetch(window.buildAuthedUrl ? window.buildAuthedUrl({ type: "customers" }) : (ORDER_API_URL + "?type=customers"));
         customerList = await window.readJsonResponse(res);
 
         customerSelect.innerHTML = `<option value="">Select Customer</option>`;
@@ -183,12 +183,9 @@ document.addEventListener("DOMContentLoaded", function () {
             balance: parseCurrency(balanceEl.innerText)
         };
 
-        await fetch(ORDER_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                type: "order",
-                data: order
-            })
+        await window.postToGoogleScript({
+            type: "order",
+            data: order
         });
 
         showInvoice(order);
