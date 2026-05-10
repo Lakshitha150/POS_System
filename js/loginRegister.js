@@ -1,16 +1,25 @@
 const LOGIN_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
+const REMEMBER_KEY = "rememberLogin";
+const SAVED_USERNAME_KEY = "savedUsername";
 
-document.getElementById("reg").addEventListener("click", (event) => {
-    event.preventDefault();
-    showToast("Registration is disabled. Add users in the Login Access sheet.", "error");
-});
-
+const loginForm = document.getElementById("login-form");
 const loginButton = document.getElementById("log");
 const loadingOverlay = document.getElementById("loadingOverlay");
+const usernameInput = document.getElementById("email-login");
+const passwordInput = document.getElementById("password-login");
+const rememberCheckbox = document.getElementById("remember-login");
+
+restoreRememberedLogin();
+redirectIfRememberedSessionExists();
+
+loginForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+    loginButton.click();
+});
 
 loginButton.addEventListener("click", async () => {
-    const username = document.getElementById("email-login").value.trim();
-    const password = document.getElementById("password-login").value;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
 
     if (!username || !password) {
         showToast("Enter username and password.", "error");
@@ -29,6 +38,14 @@ loginButton.addEventListener("click", async () => {
         localStorage.setItem("user", JSON.stringify(result.user || {}));
         localStorage.setItem("sessionToken", result.token || "");
 
+        if (rememberCheckbox.checked) {
+            localStorage.setItem(REMEMBER_KEY, "true");
+            localStorage.setItem(SAVED_USERNAME_KEY, username);
+        } else {
+            localStorage.removeItem(REMEMBER_KEY);
+            localStorage.removeItem(SAVED_USERNAME_KEY);
+        }
+
         showToast("Logged in successfully!", "success");
         window.location.href = "index.html";
     } catch (error) {
@@ -36,6 +53,50 @@ loginButton.addEventListener("click", async () => {
         loadingOverlay.style.display = "none";
     }
 });
+
+function restoreRememberedLogin() {
+    const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
+    const savedUsername = localStorage.getItem(SAVED_USERNAME_KEY) || "";
+
+    rememberCheckbox.checked = remembered;
+    if (savedUsername) {
+        usernameInput.value = savedUsername;
+    }
+}
+
+function redirectIfRememberedSessionExists() {
+    const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
+    const sessionToken = localStorage.getItem("sessionToken");
+
+    if (!remembered || !sessionToken) {
+        return;
+    }
+
+    loadingOverlay.style.display = "flex";
+
+    validateSession(sessionToken)
+        .then(function(result) {
+            if (result && result.success === true) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            clearRememberedSession();
+            loadingOverlay.style.display = "none";
+        })
+        .catch(function() {
+            clearRememberedSession();
+            loadingOverlay.style.display = "none";
+        });
+}
+
+function validateSession(token) {
+    const url = LOGIN_API_URL + "?type=session&token=" + encodeURIComponent(token);
+    return fetch(url).then(async (response) => {
+        const data = await response.json();
+        return data;
+    });
+}
 
 function loginWithSheet(username, password) {
     return fetch(LOGIN_API_URL, {
@@ -63,6 +124,11 @@ function loginWithSheet(username, password) {
 
         return data;
     });
+}
+
+function clearRememberedSession() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("sessionToken");
 }
 
 function showToast(message, type) {

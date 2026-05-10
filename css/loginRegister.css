@@ -87,6 +87,22 @@ form {
     gap: 14px;
 }
 
+.remember-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #547178;
+    cursor: pointer;
+}
+
+.remember-row input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #0f766e;
+}
+
 .heading {
     font-size: 28px;
     font-weight: 800;
