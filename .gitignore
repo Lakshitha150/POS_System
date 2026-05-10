@@ -1,0 +1,17 @@
+.idea/
+.vscode/
+
+# Local environment files
+.env
+.env.*
+
+# Local data exports and spreadsheets
+db/*.ods
+google-apps-script/*.ods
+
+# Keep Apps Script source local unless you intentionally want it in Git
+google-apps-script/
+
+# Optional local-only frontend config
+js/config.local.js
+config.local.js
