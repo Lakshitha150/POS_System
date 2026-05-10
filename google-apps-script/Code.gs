@@ -8,12 +8,13 @@ const SHEETS = {
 };
 
 function doGet(e) {
-  const type = String(e.parameter.type || "").toLowerCase();
+  const parameters = (e && e.parameter) || {};
+  const type = getRequestType(parameters);
 
   if (type === "ping") return json({ success: true, message: "POS API is running" });
   if (type === "debug") return json({
     success: true,
-    parameters: e.parameter,
+    parameters: parameters,
     sheets: getSpreadsheet().getSheets().map(sheet => sheet.getName())
   });
   if (type === "products" || type === "product") return json(readSheetObjects(SHEETS.products));
@@ -23,25 +24,88 @@ function doGet(e) {
   if (type === "orderid") return text("ORD-" + Date.now());
   if (type === "dashboard") return json(getDashboardData());
 
-  return json({ message: "Invalid request" });
+  if (hasCustomerFields(parameters)) {
+    return json(addCustomerRecords([parameters]));
+  }
+
+  return HtmlService
+    .createHtmlOutputFromFile(String(parameters.page || "index"))
+    .setTitle("Optical Camp Customer Entry")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function doPost(e) {
-  const payload = JSON.parse((e.postData && e.postData.contents) || "{}");
-  const type = String(payload.type || "").toLowerCase();
-  const data = payload.data || {};
+  const payload = parsePostPayload(e);
 
-  if (type === "addproduct") return json(addRow(SHEETS.products, productRow(data)));
-  if (type === "updateproduct") return json(updateRow(SHEETS.products, ["pro_id", "productID", "Product ID"], data.originalProId || data.pro_id, productRow(data)));
-  if (type === "deleteproduct") return json(deleteRow(SHEETS.products, ["pro_id", "productID", "Product ID"], data.pro_id));
+  if (Array.isArray(payload)) return json(addCustomerRecords(payload));
 
-  if (type === "addcustomer") return json(addRow(SHEETS.customers, customerRow(data)));
-  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["customerID", "Customer ID"], data.originalCustomerID || data.customerID, customerRow(data)));
-  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["customerID", "Customer ID"], data.customerID));
+  const type = getRequestType(payload);
+  const data = payload.data || payload.record || payload.customer || payload;
+
+  const product = normalizeProductInput(data);
+  const customer = normalizeCustomerInput(data);
+
+  if (type === "addproduct") return json(addRow(SHEETS.products, productRow(product)));
+  if (type === "updateproduct") return json(updateRow(SHEETS.products, ["pro_id", "productID", "Product ID"], data.originalProId || product.pro_id, productRow(product)));
+  if (type === "deleteproduct") return json(deleteRow(SHEETS.products, ["pro_id", "productID", "Product ID"], product.pro_id));
+
+  if (type === "addcustomer") return json(addRow(SHEETS.customers, customerRow(customer)));
+  if (type === "updatecustomer") return json(updateRow(SHEETS.customers, ["customerID", "Customer ID"], data.originalCustomerID || customer.customerID, customerRow(customer)));
+  if (type === "deletecustomer") return json(deleteRow(SHEETS.customers, ["customerID", "Customer ID"], customer.customerID));
+  if (type === "addcustomers" || type === "uploadcustomers") {
+    const records = payload.records || payload.customers || data;
+    return json(addCustomerRecords(Array.isArray(records) ? records : [records]));
+  }
 
   if (type === "order") return json(addRow(SHEETS.orders, orderRow(data)));
 
+  if (hasCustomerFields(data)) {
+    return json(addCustomerRecords([data]));
+  }
+
   return json({ success: false, message: "Invalid request" });
+}
+
+function uploadCustomerRecords(records) {
+  return addCustomerRecords(records);
+}
+
+function parsePostPayload(e) {
+  const contents = (e && e.postData && e.postData.contents) || "{}";
+
+  try {
+    const payload = JSON.parse(contents);
+    return payload || {};
+  } catch (error) {
+    return (e && e.parameter) || {};
+  }
+}
+
+function getRequestType(source) {
+  return String((source && (source.type || source.action || source.route)) || "").toLowerCase();
+}
+
+function hasCustomerFields(source) {
+  if (!source || Array.isArray(source)) return false;
+
+  const keys = Object.keys(source).map(normalizeHeader);
+  const customerKeys = [
+    "customerid",
+    "customername",
+    "name",
+    "contactno",
+    "contact",
+    "phonenumber",
+    "mobilenumber",
+    "appointmentdate",
+    "prescription",
+    "frametype",
+    "lenstype",
+    "town",
+    "place"
+  ];
+
+  return customerKeys.some(key => keys.indexOf(key) !== -1);
 }
 
 function readSheetObjects(sheetName) {
@@ -95,6 +159,32 @@ function normalizeItem(item) {
 function addRow(sheetName, row) {
   getSheet(sheetName).appendRow(row);
   return { success: true };
+}
+
+function addCustomerRecords(records) {
+  if (!Array.isArray(records) || records.length === 0) {
+    return { success: false, message: "No customer records received", saved: 0 };
+  }
+
+  const rows = records
+    .filter(record => record && typeof record === "object")
+    .map(record => customerRow(normalizeCustomerInput(record)));
+
+  if (rows.length === 0) {
+    return { success: false, message: "No valid customer records received", saved: 0 };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    const sheet = getSheet(SHEETS.customers);
+    const startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, rows.length, rows[0].length).setValues(rows);
+    return { success: true, saved: rows.length };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function updateRow(sheetName, keys, value, row) {
@@ -153,6 +243,16 @@ function productRow(data) {
   return [data.pro_id, data.pro_name, data.price, data.category, data.quantity];
 }
 
+function normalizeProductInput(data) {
+  return {
+    pro_id: data.pro_id || data.productID || data.productId || data.id || data["Product ID"],
+    pro_name: data.pro_name || data.productName || data.name || data.product || data.Product || data["Product Name"],
+    price: data.price || data.Price,
+    category: data.category || data.Category,
+    quantity: data.quantity || data.qty || data.Quantity
+  };
+}
+
 function customerRow(data) {
   return [
     data.town,
@@ -172,6 +272,27 @@ function customerRow(data) {
     data.remainingBalance,
     data.orderStatus
   ];
+}
+
+function normalizeCustomerInput(data) {
+  return {
+    town: data.town || data.Town,
+    place: data.place || data.Place,
+    representative: data.representative || data.Representative,
+    customerID: data.customerID || data.customerId || data.custId || data["Customer ID"] || ("C-" + Date.now()),
+    name: data.name || data.Name || data.customerName || data.custName || data["Full Name"],
+    age: data.age || data.Age,
+    birthday: data.birthday || data.Birthday,
+    contactNo: data.contactNo || data.contact || data.phoneNumber || data.mobileNumber || data.custContact || data.customerNumber || data["Contact No"] || data.Contact || data["Contact Number"] || data["Mobile Number"],
+    appointmentDate: data.appointmentDate || data["Appointment Date"],
+    prescription: data.prescription || data.Prescription,
+    frameType: data.frameType || data["Frame Type"],
+    lensType: data.lensType || data["Lens Type"],
+    totalAmount: data.totalAmount || data["Total Amount"],
+    advancedPayment: data.advancedPayment || data["Advanced Payment"],
+    remainingBalance: data.remainingBalance || data["Remaining Balance"],
+    orderStatus: data.orderStatus || data["Order Status"] || "Pending"
+  };
 }
 
 function orderRow(data) {

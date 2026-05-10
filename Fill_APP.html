@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optical Camp Customer Entry</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel-soft: #eef6ff;
+      --text: #122033;
+      --muted: #607089;
+      --line: #dce5f0;
+      --blue: #1769e0;
+      --blue-dark: #0d4fb4;
+      --green: #16845f;
+      --red: #c93636;
+      --amber: #b76e00;
+      --shadow: 0 12px 28px rgba(18, 32, 51, 0.09);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(23, 105, 224, 0.12), rgba(23, 105, 224, 0) 260px),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 22px 14px 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border-radius: var(--radius);
+      background: var(--text);
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0;
+      flex: 0 0 auto;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      color: var(--text);
+      font-size: clamp(24px, 5vw, 38px);
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .connection-pill {
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 13px;
+      font-weight: 700;
+      gap: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 20px rgba(18, 32, 51, 0.06);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .dot.offline {
+      background: var(--red);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 26px;
+      margin-top: 4px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      border-bottom: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .panel-header h2 {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .panel-header p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .form-body {
+      display: grid;
+      gap: 18px;
+      padding: 16px;
+    }
+
+    .section {
+      display: grid;
+      gap: 12px;
+    }
+
+    .section-title {
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #26364a;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid #cbd8e6;
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+      padding: 11px 12px;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.14);
+    }
+
+    input[readonly] {
+      background: var(--panel-soft);
+      color: #0d4fb4;
+      font-weight: 800;
+    }
+
+    .keep-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .keep-row input {
+      width: 16px;
+      height: 16px;
+      min-height: 16px;
+      accent-color: var(--blue);
+    }
+
+    .actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      padding: 12px 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn {
+      align-items: center;
+      border-radius: var(--radius);
+      color: #ffffff;
+      display: inline-flex;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 46px;
+      padding: 11px 14px;
+      text-align: center;
+      transition: transform 0.15s ease, filter 0.15s ease;
+      white-space: normal;
+    }
+
+    .btn:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--blue);
+    }
+
+    .btn-success {
+      background: var(--green);
+    }
+
+    .btn-danger {
+      background: var(--red);
+    }
+
+    .btn-warning {
+      background: var(--amber);
+    }
+
+    .status {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 16px 16px;
+    }
+
+    .queue {
+      overflow: hidden;
+    }
+
+    .record-list {
+      display: grid;
+      gap: 10px;
+      max-height: 620px;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .record {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .record-main {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .record h3 {
+      font-size: 15px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      border-radius: 999px;
+      background: #e8f0ff;
+      color: var(--blue-dark);
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 8px;
+    }
+
+    .record-details {
+      color: var(--muted);
+      display: grid;
+      gap: 3px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .record-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .record-actions .btn {
+      min-height: 38px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .record-list {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        padding: 14px 10px 24px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+      }
+
+      .connection-pill {
+        padding: 7px 10px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grid,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header,
+      .form-body,
+      .actions,
+      .status {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">OC</div>
+        <div>
+          <div class="eyebrow">Optical Camp</div>
+          <h1>Customer Entry</h1>
+        </div>
+      </div>
+
+      <div class="connection-pill" id="connectionPill">
+        <span class="dot" id="connectionDot"></span>
+        <span id="connectionText">Online</span>
+      </div>
+    </header>
+
+    <section class="summary-grid" aria-label="Offline summary">
+      <div class="metric">
+        <span>Pending</span>
+        <strong id="pendingCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Total Value</span>
+        <strong id="pendingValue">0</strong>
+      </div>
+      <div class="metric">
+        <span>Last Saved</span>
+        <strong id="lastSaved">-</strong>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <form class="panel" id="opticalForm">
+        <div class="panel-header">
+          <h2 id="formTitle">New Customer Record</h2>
+          <p>Saved records stay on this device until you upload them.</p>
+        </div>
+
+        <div class="form-body">
+          <section class="section">
+            <h2 class="section-title">Camp Details</h2>
+            <div class="grid">
+              <div class="field">
+                <label for="town">Town</label>
+                <input type="text" id="town" autocomplete="address-level2" required>
+                <label class="keep-row" for="keepTown">
+                  <input type="checkbox" id="keepTown">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="place">Place</label>
+                <input type="text" id="place" autocomplete="street-address" required>
+                <label class="keep-row" for="keepPlace">
+                  <input type="checkbox" id="keepPlace">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="representative">Representative</label>
+                <input type="text" id="representative" autocomplete="name" required>
+                <label class="keep-row" for="keepRepresentative">
+                  <input type="checkbox" id="keepRepresentative">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="appointmentDate">Appointment Date</label>
+                <input type="date" id="appointmentDate">
+                <label class="keep-row" for="keepAppointmentDate">
+                  <input type="checkbox" id="keepAppointmentDate">
+                  Keep for next customer
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Customer Details</h2>
+            <div class="grid">
+              <div class="field">
+                <label for="customerId">Customer ID</label>
+                <input type="text" id="customerId" autocomplete="off" required>
+              </div>
+
+              <div class="field">
+                <label for="name">Name</label>
+                <input type="text" id="name" autocomplete="name" required>
+              </div>
+
+              <div class="field">
+                <label for="age">Age</label>
+                <input type="number" id="age" inputmode="numeric" min="0">
+              </div>
+
+              <div class="field">
+                <label for="birthday">Birthday</label>
+                <input type="date" id="birthday">
+              </div>
+
+              <div class="field">
+                <label for="contact">Contact No</label>
+                <input type="tel" id="contact" autocomplete="tel" inputmode="tel">
+              </div>
+
+              <div class="field">
+                <label for="orderStatus">Order Status</label>
+                <select id="orderStatus">
+                  <option>Pending</option>
+                  <option>Processing</option>
+                  <option>Completed</option>
+                  <option>Delivered</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Order Details</h2>
+            <div class="grid">
+              <div class="field">
+                <label for="frameType">Frame Type</label>
+                <select id="frameType">
+                  <option value="">Select</option>
+                  <option>Full Frame</option>
+                  <option>Half Frame</option>
+                  <option>Rimless</option>
+                  <option>Metal Frame</option>
+                  <option>Plastic Frame</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="lensType">Lens Type</label>
+                <select id="lensType">
+                  <option value="">Select</option>
+                  <option>Single Vision</option>
+                  <option>Bifocal</option>
+                  <option>Progressive</option>
+                  <option>Blue Cut</option>
+                  <option>Photochromic</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="totalAmount">Total Amount</label>
+                <input type="number" id="totalAmount" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="advancedPayment">Advanced Payment</label>
+                <input type="number" id="advancedPayment" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="remainingBalance">Remaining Balance</label>
+                <input type="number" id="remainingBalance" readonly>
+              </div>
+
+              <div class="field full">
+                <label for="prescription">Prescription</label>
+                <textarea id="prescription"></textarea>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="saveButton">Save Offline</button>
+          <button type="button" class="btn btn-success" onclick="uploadData()">Upload Sheet</button>
+          <button type="button" class="btn btn-danger" onclick="clearOfflineData()">Clear Offline</button>
+        </div>
+
+        <div class="status" id="statusBox">Status: Ready</div>
+      </form>
+
+      <aside class="panel queue">
+        <div class="panel-header">
+          <h2>Pending Records</h2>
+          <p>Stored locally on this phone or computer.</p>
+        </div>
+        <div class="record-list" id="recordsList"></div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec';
+    const STORAGE_KEY = 'opticalOrders';
+    const PERSISTENT_KEY = 'campPersistentData';
+
+    const form = document.getElementById('opticalForm');
+    const statusBox = document.getElementById('statusBox');
+    const formTitle = document.getElementById('formTitle');
+    const saveButton = document.getElementById('saveButton');
+    const pendingCount = document.getElementById('pendingCount');
+    const pendingValue = document.getElementById('pendingValue');
+    const lastSaved = document.getElementById('lastSaved');
+    const recordsList = document.getElementById('recordsList');
+    const connectionDot = document.getElementById('connectionDot');
+    const connectionText = document.getElementById('connectionText');
+    const totalAmountInput = document.getElementById('totalAmount');
+    const advancedPaymentInput = document.getElementById('advancedPayment');
+    const remainingBalanceInput = document.getElementById('remainingBalance');
+
+    let editIndex = null;
+
+    loadPersistentFields();
+    loadOfflineRecords();
+    updateConnectionState();
+
+    totalAmountInput.addEventListener('input', calculateBalance);
+    advancedPaymentInput.addEventListener('input', calculateBalance);
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      savePersistentFields();
+
+      const records = getRecords();
+      const data = collectFormData();
+
+      if (editIndex !== null) {
+        records[editIndex] = data;
+        editIndex = null;
+        formTitle.textContent = 'New Customer Record';
+        saveButton.textContent = 'Save Offline';
+        setStatus('Record updated successfully.');
+      } else {
+        records.push(data);
+        setStatus('Offline record saved.');
+      }
+
+      saveRecords(records);
+      clearCustomerFields();
+      loadOfflineRecords();
+    });
+
+    function collectFormData() {
+      return {
+        timestamp: new Date().toISOString(),
+        town: getValue('town'),
+        place: getValue('place'),
+        representative: getValue('representative'),
+        appointmentDate: getValue('appointmentDate'),
+        customerId: getValue('customerId'),
+        customerID: getValue('customerId'),
+        name: getValue('name'),
+        age: getValue('age'),
+        birthday: getValue('birthday'),
+        contact: getValue('contact'),
+        contactNo: getValue('contact'),
+        frameType: getValue('frameType'),
+        lensType: getValue('lensType'),
+        totalAmount: getValue('totalAmount'),
+        advancedPayment: getValue('advancedPayment'),
+        remainingBalance: getValue('remainingBalance'),
+        orderStatus: getValue('orderStatus'),
+        prescription: getValue('prescription'),
+        uploaded: false
+      };
+    }
+
+    function getValue(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function calculateBalance() {
+      const total = Number(totalAmountInput.value) || 0;
+      const advance = Number(advancedPaymentInput.value) || 0;
+      remainingBalanceInput.value = Math.max(total - advance, 0).toFixed(2);
+    }
+
+    function clearCustomerFields() {
+      [
+        'customerId',
+        'name',
+        'age',
+        'birthday',
+        'contact',
+        'frameType',
+        'lensType',
+        'totalAmount',
+        'advancedPayment',
+        'remainingBalance',
+        'prescription'
+      ].forEach(id => document.getElementById(id).value = '');
+
+      if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
+      if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
+      if (!document.getElementById('keepRepresentative').checked) document.getElementById('representative').value = '';
+      if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
+
+      document.getElementById('orderStatus').value = 'Pending';
+    }
+
+    function savePersistentFields() {
+      const persistentData = {
+        town: document.getElementById('keepTown').checked ? getValue('town') : '',
+        place: document.getElementById('keepPlace').checked ? getValue('place') : '',
+        representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
+        appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
+        keepTown: document.getElementById('keepTown').checked,
+        keepPlace: document.getElementById('keepPlace').checked,
+        keepRepresentative: document.getElementById('keepRepresentative').checked,
+        keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
+      };
+
+      localStorage.setItem(PERSISTENT_KEY, JSON.stringify(persistentData));
+    }
+
+    function loadPersistentFields() {
+      const persistentData = JSON.parse(localStorage.getItem(PERSISTENT_KEY) || 'null');
+      if (!persistentData) return;
+
+      document.getElementById('town').value = persistentData.town || '';
+      document.getElementById('place').value = persistentData.place || '';
+      document.getElementById('representative').value = persistentData.representative || '';
+      document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
+      document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
+      document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
+      document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
+      document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
+    }
+
+    function loadOfflineRecords() {
+      const records = getRecords();
+      recordsList.innerHTML = '';
+
+      pendingCount.textContent = records.length;
+      pendingValue.textContent = formatAmount(records.reduce((sum, record) => sum + (Number(record.totalAmount) || 0), 0));
+      lastSaved.textContent = getLastSavedLabel(records);
+
+      if (records.length === 0) {
+        recordsList.innerHTML = '<div class="empty">No pending offline records.</div>';
+        return;
+      }
+
+      records.forEach((record, index) => {
+        const item = document.createElement('article');
+        item.className = 'record';
+        item.innerHTML = `
+          <div class="record-main">
+            <div>
+              <h3>${escapeHtml(record.name || 'Unnamed Customer')}</h3>
+              <div class="record-details">
+                <span>${escapeHtml(record.customerId || record.customerID || '-')} | ${escapeHtml(record.contact || record.contactNo || '-')}</span>
+                <span>${escapeHtml(record.town || '-')} / ${escapeHtml(record.representative || '-')}</span>
+                <span>${escapeHtml(record.lensType || 'No lens selected')} | ${formatAmount(Number(record.totalAmount) || 0)}</span>
+              </div>
+            </div>
+            <span class="badge">${escapeHtml(record.orderStatus || 'Pending')}</span>
+          </div>
+          <div class="record-actions">
+            <button type="button" class="btn btn-warning" onclick="editRecord(${index})">Edit</button>
+            <button type="button" class="btn btn-danger" onclick="deleteRecord(${index})">Delete</button>
+          </div>
+        `;
+        recordsList.appendChild(item);
+      });
+    }
+
+    function editRecord(index) {
+      const records = getRecords();
+      const record = records[index];
+      if (!record) return;
+
+      setValue('town', record.town);
+      setValue('place', record.place);
+      setValue('representative', record.representative);
+      setValue('appointmentDate', record.appointmentDate);
+      setValue('customerId', record.customerId || record.customerID);
+      setValue('name', record.name);
+      setValue('age', record.age);
+      setValue('birthday', record.birthday);
+      setValue('contact', record.contact || record.contactNo);
+      setValue('frameType', record.frameType);
+      setValue('lensType', record.lensType);
+      setValue('totalAmount', record.totalAmount);
+      setValue('advancedPayment', record.advancedPayment);
+      setValue('remainingBalance', record.remainingBalance);
+      setValue('orderStatus', record.orderStatus || 'Pending');
+      setValue('prescription', record.prescription);
+
+      editIndex = index;
+      formTitle.textContent = 'Edit Customer Record';
+      saveButton.textContent = 'Update Offline';
+      setStatus('Editing offline record.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setValue(id, value) {
+      document.getElementById(id).value = value || '';
+    }
+
+    function deleteRecord(index) {
+      if (!confirm('Delete this record?')) return;
+
+      const records = getRecords();
+      records.splice(index, 1);
+      saveRecords(records);
+      loadOfflineRecords();
+      setStatus('Record deleted.');
+    }
+
+    function clearOfflineData() {
+      if (!confirm('Clear all offline records?')) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+      editIndex = null;
+      formTitle.textContent = 'New Customer Record';
+      saveButton.textContent = 'Save Offline';
+      loadOfflineRecords();
+      setStatus('Offline data cleared.');
+    }
+
+    async function uploadData() {
+      const records = getRecords();
+
+      if (records.length === 0) {
+        setStatus('No offline records available.');
+        return;
+      }
+
+      setStatus('Uploading records to Google Sheet...');
+
+      try {
+        const result = await uploadRecords(records);
+
+        if (!result || result.success === false) {
+          throw new Error((result && result.message) || 'Upload failed.');
+        }
+
+        localStorage.removeItem(STORAGE_KEY);
+        editIndex = null;
+        loadOfflineRecords();
+        setStatus(`Upload successful. ${result.saved || records.length} record(s) added.`);
+      } catch (error) {
+        console.error(error);
+        setStatus('Upload failed. Check internet or web app deployment.');
+      }
+    }
+
+    function uploadRecords(records) {
+      if (window.google && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .uploadCustomerRecords(records);
+        });
+      }
+
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          type: 'uploadcustomers',
+          data: records
+        })
+      }).then(response => response.json());
+    }
+
+    function getRecords() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+
+    function saveRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function setStatus(message) {
+      statusBox.textContent = `Status: ${message}`;
+    }
+
+    function formatAmount(value) {
+      return new Intl.NumberFormat('en-LK', {
+        maximumFractionDigits: 0
+      }).format(value || 0);
+    }
+
+    function getLastSavedLabel(records) {
+      if (records.length === 0) return '-';
+
+      const latest = records
+        .map(record => new Date(record.timestamp).getTime())
+        .filter(Boolean)
+        .sort((a, b) => b - a)[0];
+
+      if (!latest) return '-';
+
+      return new Date(latest).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function updateConnectionState() {
+      const online = navigator.onLine;
+      connectionDot.classList.toggle('offline', !online);
+      connectionText.textContent = online ? 'Online' : 'Offline';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[character]));
+    }
+
+    window.addEventListener('online', () => {
+      updateConnectionState();
+      setStatus('Internet connection detected.');
+    });
+
+    window.addEventListener('offline', () => {
+      updateConnectionState();
+      setStatus('Offline mode enabled.');
+    });
+  </script>
+</body>
+</html>
