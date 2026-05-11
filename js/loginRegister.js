@@ -10,6 +10,7 @@ const passwordInput = document.getElementById("password-login");
 const rememberCheckbox = document.getElementById("remember-login");
 const destinationInputs = document.querySelectorAll("input[name='login-destination']");
 const DESTINATION_KEY = "loginDestination";
+const DEFAULT_DESTINATION = "Fill_APP.html";
 
 restoreRememberedLogin();
 redirectIfRememberedSessionExists();
@@ -62,7 +63,7 @@ loginButton.addEventListener("click", async () => {
 function restoreRememberedLogin() {
     const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
     const savedUsername = localStorage.getItem(SAVED_USERNAME_KEY) || "";
-    const savedDestination = getRedirectTargetFromUrl() || localStorage.getItem(DESTINATION_KEY) || "index.html";
+    const savedDestination = getRedirectTargetFromUrl() || localStorage.getItem(DESTINATION_KEY) || DEFAULT_DESTINATION;
 
     rememberCheckbox.checked = remembered;
     if (savedUsername) {
@@ -160,7 +161,7 @@ function getPreferredDestination() {
     if (redirectTarget) return redirectTarget;
 
     const selected = Array.from(destinationInputs).find(input => input.checked);
-    return (selected && selected.value) || localStorage.getItem(DESTINATION_KEY) || "index.html";
+    return (selected && selected.value) || localStorage.getItem(DESTINATION_KEY) || DEFAULT_DESTINATION;
 }
 
 function showToast(message, type) {

@@ -166,6 +166,46 @@
       margin-bottom: 16px;
     }
 
+    .entry-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      background: rgba(244, 247, 251, 0.94);
+      padding: 6px 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .tab-button {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 9px 10px;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .tab-button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    [data-active-tab="quick"] .defaults-section,
+    [data-active-tab="quick"] [data-offline-panel],
+    [data-active-tab="defaults"] .quick-section,
+    [data-active-tab="defaults"] [data-offline-panel],
+    [data-active-tab="defaults"] .actions,
+    [data-active-tab="offline"] #opticalForm {
+      display: none;
+    }
+
     .metric {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -251,6 +291,16 @@
 
     .field.full {
       grid-column: 1 / -1;
+    }
+
+    .birth-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr 0.9fr;
+      gap: 8px;
+    }
+
+    .birth-grid input {
+      min-width: 0;
     }
 
     label {
@@ -471,8 +521,13 @@
       }
 
       .grid,
+      .entry-tabs,
       .actions {
         grid-template-columns: 1fr;
+      }
+
+      .birth-grid {
+        grid-template-columns: 1fr 1fr 1fr;
       }
 
       .panel-header,
@@ -486,7 +541,7 @@
   </style>
 </head>
 <body>
-  <main class="app">
+  <main class="app" data-active-tab="quick">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">OC</div>
@@ -509,7 +564,13 @@
       </div>
     </header>
 
-    <section class="summary-grid" aria-label="Offline summary">
+    <nav class="entry-tabs" aria-label="Entry sections">
+      <button type="button" class="tab-button active" data-tab="quick">Quick Entry</button>
+      <button type="button" class="tab-button" data-tab="defaults">Defaults</button>
+      <button type="button" class="tab-button" data-tab="offline">Offline</button>
+    </nav>
+
+    <section class="summary-grid" aria-label="Offline summary" data-offline-panel>
       <div class="metric">
         <span>Pending</span>
         <strong id="pendingCount">0</strong>
@@ -532,12 +593,12 @@
         </div>
 
         <div class="form-body">
-          <section class="section">
+          <section class="section defaults-section">
             <h2 class="section-title">Camp Details</h2>
             <div class="grid">
               <div class="field">
                 <label for="town">Town</label>
-                <input type="text" id="town" autocomplete="address-level2" required>
+                <input type="text" id="town" autocomplete="address-level2">
                 <label class="keep-row" for="keepTown">
                   <input type="checkbox" id="keepTown">
                   Keep for next customer
@@ -546,7 +607,7 @@
 
               <div class="field">
                 <label for="place">Place</label>
-                <input type="text" id="place" autocomplete="street-address" required>
+                <input type="text" id="place" autocomplete="street-address">
                 <label class="keep-row" for="keepPlace">
                   <input type="checkbox" id="keepPlace">
                   Keep for next customer
@@ -555,7 +616,7 @@
 
               <div class="field">
                 <label for="representative">Representative</label>
-                <input type="text" id="representative" autocomplete="name" required readonly>
+                <select id="representative"></select>
                 <label class="keep-row" for="keepRepresentative">
                   <input type="checkbox" id="keepRepresentative">
                   Keep for next customer
@@ -571,9 +632,10 @@
                 </label>
               </div>
             </div>
+            <button type="button" class="btn btn-primary" id="saveDefaultsButton">Save Defaults</button>
           </section>
 
-          <section class="section">
+          <section class="section quick-section">
             <h2 class="section-title">Customer Details</h2>
             <div class="grid">
               <div class="field">
@@ -586,14 +648,19 @@
                 <input type="text" id="name" autocomplete="name" required>
               </div>
 
-              <div class="field">
-                <label for="age">Age</label>
-                <input type="number" id="age" inputmode="numeric" min="0">
+              <div class="field full">
+                <label for="birthYear">Birthday</label>
+                <div class="birth-grid">
+                  <input type="number" id="birthYear" inputmode="numeric" min="1900" max="2099" placeholder="Year">
+                  <input type="number" id="birthMonth" inputmode="numeric" min="1" max="12" placeholder="Month">
+                  <input type="number" id="birthDay" inputmode="numeric" min="1" max="31" placeholder="Day">
+                </div>
+                <input type="hidden" id="birthday">
               </div>
 
               <div class="field">
-                <label for="birthday">Birthday</label>
-                <input type="date" id="birthday">
+                <label for="age">Age</label>
+                <input type="number" id="age" inputmode="numeric" min="0">
               </div>
 
               <div class="field">
@@ -613,7 +680,7 @@
             </div>
           </section>
 
-          <section class="section">
+          <section class="section quick-section">
             <h2 class="section-title">Order Details</h2>
             <div class="grid">
               <div class="field">
@@ -672,7 +739,7 @@
         <div class="status" id="statusBox">Status: Ready</div>
       </form>
 
-      <aside class="panel queue">
+      <aside class="panel queue" data-offline-panel>
         <div class="panel-header">
           <h2>Pending Records</h2>
           <p>Stored locally on this phone or computer.</p>
@@ -687,6 +754,7 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec';
     const STORAGE_KEY = 'opticalOrders';
     const PERSISTENT_KEY = 'campPersistentData';
+    const REPRESENTATIVES_KEY = 'representativeOptions';
     const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
     const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
     const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
@@ -696,9 +764,12 @@
     }
 
     const form = document.getElementById('opticalForm');
+    const app = document.querySelector('.app');
+    const tabButtons = document.querySelectorAll('[data-tab]');
     const statusBox = document.getElementById('statusBox');
     const formTitle = document.getElementById('formTitle');
     const saveButton = document.getElementById('saveButton');
+    const saveDefaultsButton = document.getElementById('saveDefaultsButton');
     const pendingCount = document.getElementById('pendingCount');
     const pendingValue = document.getElementById('pendingValue');
     const lastSaved = document.getElementById('lastSaved');
@@ -708,28 +779,52 @@
     const totalAmountInput = document.getElementById('totalAmount');
     const advancedPaymentInput = document.getElementById('advancedPayment');
     const remainingBalanceInput = document.getElementById('remainingBalance');
+    const birthYearInput = document.getElementById('birthYear');
+    const birthMonthInput = document.getElementById('birthMonth');
+    const birthDayInput = document.getElementById('birthDay');
+    const birthdayInput = document.getElementById('birthday');
     const representativeInput = document.getElementById('representative');
     const signOutButton = document.getElementById('signOutButton');
 
     let editIndex = null;
+    let lastEnterField = null;
+    let lastEnterTime = 0;
 
     window.applyCurrentUserUI && window.applyCurrentUserUI();
-    representativeInput.value = currentRepresentative;
+    populateRepresentativeOptions(getCachedRepresentatives(), currentRepresentative);
 
-    if (window.requireLogin) {
+    if (window.requireLogin && navigator.onLine) {
       window.requireLogin('Fill_APP.html').then((isAllowed) => {
         if (isAllowed && currentRepresentative) {
-          representativeInput.value = currentRepresentative;
+          populateRepresentativeOptions(getCachedRepresentatives(), getValue('representative') || currentRepresentative);
         }
       });
     }
 
     loadPersistentFields();
+    refreshRepresentativeOptions();
     loadOfflineRecords();
     updateConnectionState();
 
     totalAmountInput.addEventListener('input', calculateBalance);
     advancedPaymentInput.addEventListener('input', calculateBalance);
+    [birthYearInput, birthMonthInput, birthDayInput].forEach(input => {
+      input.addEventListener('input', () => updateBirthdayFromParts(false));
+      input.addEventListener('blur', () => updateBirthdayFromParts(true));
+    });
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        setActiveTab(button.dataset.tab);
+        if (button.dataset.tab === 'defaults') refreshRepresentativeOptions();
+      });
+    });
+    saveDefaultsButton.addEventListener('click', () => {
+      savePersistentFields();
+      setStatus('Default camp values saved.');
+      setActiveTab('quick');
+      focusFirstQuickField();
+    });
+    form.addEventListener('keydown', handleFastEntryKeys);
     signOutButton.addEventListener('click', () => {
       if (!confirm('Are you sure you want to log out?')) return;
       if (window.logout) {
@@ -742,6 +837,7 @@
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       savePersistentFields();
+      updateBirthdayFromParts(true);
 
       const records = getRecords();
       const data = collectFormData();
@@ -760,6 +856,8 @@
       saveRecords(records);
       clearCustomerFields();
       loadOfflineRecords();
+      setActiveTab('quick');
+      focusFirstQuickField();
     });
 
     function collectFormData() {
@@ -767,7 +865,7 @@
         timestamp: new Date().toISOString(),
         town: getValue('town'),
         place: getValue('place'),
-        representative: currentRepresentative || getValue('representative'),
+        representative: getValue('representative') || currentRepresentative,
         appointmentDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
@@ -802,6 +900,9 @@
         'customerId',
         'name',
         'age',
+        'birthYear',
+        'birthMonth',
+        'birthDay',
         'birthday',
         'contact',
         'frameType',
@@ -814,21 +915,195 @@
 
       if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
-      document.getElementById('representative').value = currentRepresentative || '';
+      keepRepresentativeValue();
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
+    }
+
+    function setActiveTab(tabName) {
+      app.dataset.activeTab = tabName;
+      tabButtons.forEach(button => {
+        const isActive = button.dataset.tab === tabName;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    }
+
+    function handleFastEntryKeys(event) {
+      if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+        return;
+      }
+
+      const target = event.target;
+      if (!target || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = Date.now();
+      const isDoubleEnter = target === lastEnterField && now - lastEnterTime < 500;
+      lastEnterField = target;
+      lastEnterTime = now;
+
+      if (isDoubleEnter) {
+        requestSubmitForm();
+        return;
+      }
+
+      focusNextQuickField(target);
+    }
+
+    function getQuickFields() {
+      return Array.from(form.querySelectorAll('.quick-section input:not([type="hidden"]), .quick-section select, .quick-section textarea'))
+        .filter(field => !field.disabled && field.offsetParent !== null);
+    }
+
+    function focusNextQuickField(currentField) {
+      const fields = getQuickFields();
+      const currentIndex = fields.indexOf(currentField);
+      const nextField = fields[currentIndex + 1] || fields[0];
+      if (nextField) nextField.focus();
+    }
+
+    function focusFirstQuickField() {
+      const firstEmpty = getQuickFields().find(field => field.id !== 'orderStatus' && !field.value);
+      (firstEmpty || document.getElementById('customerId')).focus();
+    }
+
+    function requestSubmitForm() {
+      if (form.requestSubmit) {
+        form.requestSubmit(saveButton);
+        return;
+      }
+      saveButton.click();
+    }
+
+    function updateBirthdayFromParts(commitYear) {
+      const normalizedYear = normalizeBirthYear(birthYearInput.value, commitYear);
+      const month = normalizeDatePart(birthMonthInput.value, 12);
+      const day = normalizeDatePart(birthDayInput.value, 31);
+
+      if (commitYear && normalizedYear) {
+        birthYearInput.value = normalizedYear;
+      }
+
+      if (normalizedYear.length === 4 && month && day) {
+        birthdayInput.value = `${normalizedYear}-${month}-${day}`;
+        updateAgeFromBirthday(Number(normalizedYear), Number(month), Number(day));
+      } else {
+        birthdayInput.value = '';
+      }
+    }
+
+    function normalizeBirthYear(value, commitYear) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (!digits) return '';
+
+      const currentYear = new Date().getFullYear();
+      if (commitYear && digits.length <= 2) {
+        const shortYear = Number(digits);
+        const century = shortYear > (currentYear % 100) ? 1900 : 2000;
+        return String(century + shortYear);
+      }
+
+      if (digits.length < 4) return digits;
+
+      const year = Number(digits.slice(0, 4));
+      if (!year) return '';
+      return String(Math.min(Math.max(year, 1900), currentYear));
+    }
+
+    function normalizeDatePart(value, max) {
+      const number = Number(String(value || '').replace(/\D/g, ''));
+      if (!number) return '';
+      return String(Math.min(Math.max(number, 1), max)).padStart(2, '0');
+    }
+
+    function updateAgeFromBirthday(year, month, day) {
+      const today = new Date();
+      let age = today.getFullYear() - year;
+      const hasBirthdayPassed = today.getMonth() + 1 > month || (today.getMonth() + 1 === month && today.getDate() >= day);
+      if (!hasBirthdayPassed) age -= 1;
+      document.getElementById('age').value = Math.max(age, 0);
+    }
+
+    function splitBirthday(value) {
+      const parts = String(value || '').split('-');
+      setValue('birthYear', parts[0] || '');
+      setValue('birthMonth', parts[1] ? String(Number(parts[1])) : '');
+      setValue('birthDay', parts[2] ? String(Number(parts[2])) : '');
+      setValue('birthday', value || '');
+    }
+
+    function getCachedRepresentatives() {
+      try {
+        const names = JSON.parse(localStorage.getItem(REPRESENTATIVES_KEY) || '[]');
+        return Array.isArray(names) ? names : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCachedRepresentatives(names) {
+      localStorage.setItem(REPRESENTATIVES_KEY, JSON.stringify(names));
+    }
+
+    function populateRepresentativeOptions(names, selectedName) {
+      const cleanedNames = Array.from(new Set([selectedName, currentRepresentative, ...names]
+        .map(name => String(name || '').trim())
+        .filter(Boolean)))
+        .sort();
+
+      representativeInput.innerHTML = '<option value="">Representative</option>';
+      cleanedNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        representativeInput.appendChild(option);
+      });
+
+      representativeInput.value = selectedName || currentRepresentative || '';
+    }
+
+    async function refreshRepresentativeOptions() {
+      if (!navigator.onLine || !sessionToken) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${SCRIPT_URL}?type=representatives&token=${encodeURIComponent(sessionToken)}`);
+        const result = await response.json();
+        const names = Array.isArray(result) ? result : (result.representatives || []);
+
+        if (!names.length) {
+          return;
+        }
+
+        saveCachedRepresentatives(names);
+        populateRepresentativeOptions(names, getValue('representative') || currentRepresentative);
+        setStatus('Representative list updated.');
+      } catch (error) {
+        console.warn('Representative list update failed:', error);
+      }
+    }
+
+    function keepRepresentativeValue() {
+      const shouldKeep = document.getElementById('keepRepresentative').checked;
+      const selected = shouldKeep ? getValue('representative') : currentRepresentative;
+      populateRepresentativeOptions(getCachedRepresentatives(), selected);
     }
 
     function savePersistentFields() {
       const persistentData = {
         town: document.getElementById('keepTown').checked ? getValue('town') : '',
         place: document.getElementById('keepPlace').checked ? getValue('place') : '',
-        representative: currentRepresentative || '',
+        representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
         appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
         keepTown: document.getElementById('keepTown').checked,
         keepPlace: document.getElementById('keepPlace').checked,
-        keepRepresentative: true,
+        keepRepresentative: document.getElementById('keepRepresentative').checked,
         keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
       };
 
@@ -841,11 +1116,11 @@
 
       document.getElementById('town').value = persistentData.town || '';
       document.getElementById('place').value = persistentData.place || '';
-      document.getElementById('representative').value = currentRepresentative || persistentData.representative || '';
+      populateRepresentativeOptions(getCachedRepresentatives(), persistentData.representative || currentRepresentative);
       document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
       document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
       document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
-      document.getElementById('keepRepresentative').checked = true;
+      document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
       document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
     }
 
@@ -893,12 +1168,12 @@
 
       setValue('town', record.town);
       setValue('place', record.place);
-      setValue('representative', currentRepresentative || record.representative);
+      populateRepresentativeOptions(getCachedRepresentatives(), record.representative || currentRepresentative);
       setValue('appointmentDate', record.appointmentDate);
       setValue('customerId', record.customerId || record.customerID);
       setValue('name', record.name);
       setValue('age', record.age);
-      setValue('birthday', record.birthday);
+      splitBirthday(record.birthday);
       setValue('contact', record.contact || record.contactNo);
       setValue('frameType', record.frameType);
       setValue('lensType', record.lensType);
@@ -912,6 +1187,7 @@
       formTitle.textContent = 'Edit Customer Record';
       saveButton.textContent = 'Update Offline';
       setStatus('Editing offline record.');
+      setActiveTab('quick');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1042,6 +1318,7 @@
 
     window.addEventListener('online', () => {
       updateConnectionState();
+      refreshRepresentativeOptions();
       setStatus('Internet connection detected.');
     });
 
