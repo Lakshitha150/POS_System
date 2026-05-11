@@ -429,6 +429,24 @@
       padding: 12px;
     }
 
+    .offline-tools {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .offline-tools .btn {
+      min-height: 40px;
+      padding: 9px 10px;
+      font-size: 13px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
     .record {
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -522,6 +540,7 @@
 
       .grid,
       .entry-tabs,
+      .offline-tools,
       .actions {
         grid-template-columns: 1fr;
       }
@@ -742,7 +761,14 @@
       <aside class="panel queue" data-offline-panel>
         <div class="panel-header">
           <h2>Pending Records</h2>
-          <p>Stored locally on this phone or computer.</p>
+          <p>Stored locally here. Download a backup before changing device or refreshing in risky network.</p>
+        </div>
+        <div class="offline-tools">
+          <button type="button" class="btn btn-primary" id="downloadBackupButton">Download Backup</button>
+          <button type="button" class="btn btn-neutral" id="importBackupButton">Import Backup</button>
+          <button type="button" class="btn btn-success" onclick="uploadData()">Upload Sheet</button>
+          <button type="button" class="btn btn-danger" onclick="clearOfflineData()">Clear Offline</button>
+          <input type="file" class="file-input" id="backupFileInput" accept=".json,application/json">
         </div>
         <div class="record-list" id="recordsList"></div>
       </aside>
@@ -753,13 +779,14 @@
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec';
     const STORAGE_KEY = 'opticalOrders';
+    const STORAGE_BACKUP_KEY = 'opticalOrdersBackup';
     const PERSISTENT_KEY = 'campPersistentData';
     const REPRESENTATIVES_KEY = 'representativeOptions';
     const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
     const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
     const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
 
-    if (!currentUser || !sessionToken) {
+    if ((!currentUser || !sessionToken) && navigator.onLine) {
       window.location.href = window.buildLoginUrl ? window.buildLoginUrl('Fill_APP.html') : 'loginRegister.html?redirect=Fill_APP.html';
     }
 
@@ -774,6 +801,9 @@
     const pendingValue = document.getElementById('pendingValue');
     const lastSaved = document.getElementById('lastSaved');
     const recordsList = document.getElementById('recordsList');
+    const downloadBackupButton = document.getElementById('downloadBackupButton');
+    const importBackupButton = document.getElementById('importBackupButton');
+    const backupFileInput = document.getElementById('backupFileInput');
     const connectionDot = document.getElementById('connectionDot');
     const connectionText = document.getElementById('connectionText');
     const totalAmountInput = document.getElementById('totalAmount');
@@ -824,6 +854,9 @@
       setActiveTab('quick');
       focusFirstQuickField();
     });
+    downloadBackupButton.addEventListener('click', downloadOfflineBackup);
+    importBackupButton.addEventListener('click', () => backupFileInput.click());
+    backupFileInput.addEventListener('change', importOfflineBackup);
     form.addEventListener('keydown', handleFastEntryKeys);
     signOutButton.addEventListener('click', () => {
       if (!confirm('Are you sure you want to log out?')) return;
@@ -1205,8 +1238,117 @@
       setStatus('Record deleted.');
     }
 
+    function downloadOfflineBackup() {
+      const records = getRecords();
+
+      if (records.length === 0) {
+        setStatus('No offline records to download.');
+        return;
+      }
+
+      const backup = {
+        app: 'best-brand-optical-fill-app',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        recordCount: records.length,
+        records: records
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      const datePart = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+
+      link.href = url;
+      link.download = `optical-offline-records-${datePart}-${records.length}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      localStorage.setItem(STORAGE_BACKUP_KEY, JSON.stringify(backup));
+      setStatus(`Backup downloaded with ${records.length} record(s).`);
+    }
+
+    async function importOfflineBackup(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+
+      if (!file) {
+        return;
+      }
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const importedRecords = normalizeImportedRecords(parsed);
+
+        if (importedRecords.length === 0) {
+          setStatus('No valid records found in backup file.');
+          return;
+        }
+
+        const merged = mergeRecords(getRecords(), importedRecords);
+        saveRecords(merged.records);
+        loadOfflineRecords();
+        setActiveTab('offline');
+        setStatus(`Imported ${merged.added} new record(s). Skipped ${merged.skipped} duplicate(s).`);
+      } catch (error) {
+        console.error(error);
+        setStatus('Import failed. Use the JSON backup downloaded from this app.');
+      }
+    }
+
+    function normalizeImportedRecords(payload) {
+      const source = Array.isArray(payload) ? payload : payload.records;
+      if (!Array.isArray(source)) {
+        return [];
+      }
+
+      return source
+        .filter(record => record && typeof record === 'object')
+        .map(record => ({
+          ...record,
+          timestamp: record.timestamp || new Date().toISOString(),
+          customerId: record.customerId || record.customerID || '',
+          customerID: record.customerID || record.customerId || '',
+          contact: record.contact || record.contactNo || '',
+          contactNo: record.contactNo || record.contact || '',
+          uploaded: false
+        }))
+        .filter(record => record.name || record.customerId || record.customerID || record.contact || record.contactNo);
+    }
+
+    function mergeRecords(existingRecords, importedRecords) {
+      const records = existingRecords.slice();
+      const seen = new Set(records.map(getRecordKey));
+      let added = 0;
+      let skipped = 0;
+
+      importedRecords.forEach(record => {
+        const key = getRecordKey(record);
+        if (seen.has(key)) {
+          skipped += 1;
+          return;
+        }
+
+        seen.add(key);
+        records.push(record);
+        added += 1;
+      });
+
+      return { records, added, skipped };
+    }
+
+    function getRecordKey(record) {
+      return [
+        record.customerId || record.customerID || '',
+        record.contact || record.contactNo || '',
+        record.name || '',
+        record.timestamp || ''
+      ].map(value => String(value).trim().toLowerCase()).join('|');
+    }
+
     function clearOfflineData() {
-      if (!confirm('Clear all offline records?')) return;
+      if (!confirm('Clear all offline records from this browser? Download a backup first if you need them.')) return;
 
       localStorage.removeItem(STORAGE_KEY);
       editIndex = null;
@@ -1267,11 +1409,32 @@
     }
 
     function getRecords() {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      try {
+        const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        if (Array.isArray(records)) return records;
+      } catch (error) {
+        console.warn('Primary offline records are unreadable:', error);
+      }
+
+      try {
+        const backup = JSON.parse(localStorage.getItem(STORAGE_BACKUP_KEY) || 'null');
+        if (backup && Array.isArray(backup.records)) return backup.records;
+      } catch (error) {
+        console.warn('Backup offline records are unreadable:', error);
+      }
+
+      return [];
     }
 
     function saveRecords(records) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      localStorage.setItem(STORAGE_BACKUP_KEY, JSON.stringify({
+        app: 'best-brand-optical-fill-app',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        recordCount: records.length,
+        records: records
+      }));
     }
 
     function setStatus(message) {
