@@ -54,9 +54,9 @@ loginButton.addEventListener("click", async () => {
             localStorage.removeItem(REMEMBER_EXPIRES_KEY);
         }
 
-        showToast("Logged in successfully!", "success");
-        loadingOverlay.style.display = "none";
-        showAppChoice();
+        const destination = getPreferredDestination();
+        localStorage.setItem(DESTINATION_KEY, destination);
+        window.location.replace(destination);
     } catch (error) {
         showToast(error.message || "Invalid username or password.", "error");
         loadingOverlay.style.display = "none";

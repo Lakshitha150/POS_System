@@ -168,7 +168,7 @@
 
     .entry-tabs {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 14px;
       position: sticky;
@@ -199,10 +199,15 @@
 
     [data-active-tab="quick"] .defaults-section,
     [data-active-tab="quick"] [data-offline-panel],
+    [data-active-tab="quick"] [data-list-panel],
     [data-active-tab="defaults"] .quick-section,
     [data-active-tab="defaults"] [data-offline-panel],
+    [data-active-tab="defaults"] [data-list-panel],
     [data-active-tab="defaults"] .actions,
-    [data-active-tab="offline"] #opticalForm {
+    [data-active-tab="offline"] #opticalForm,
+    [data-active-tab="offline"] [data-list-panel],
+    [data-active-tab="list"] #opticalForm,
+    [data-active-tab="list"] [data-offline-panel] {
       display: none;
     }
 
@@ -433,6 +438,31 @@
       padding: 12px;
     }
 
+    .customer-list-panel {
+      grid-column: 1 / -1;
+      overflow: hidden;
+    }
+
+    .list-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .list-tools .btn {
+      min-height: 46px;
+    }
+
+    .customer-list {
+      display: grid;
+      gap: 10px;
+      max-height: 680px;
+      overflow: auto;
+      padding: 12px;
+    }
+
     .offline-tools {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -491,7 +521,7 @@
 
     .record-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap: 8px;
       margin-top: 10px;
     }
@@ -544,6 +574,7 @@
 
       .grid,
       .entry-tabs,
+      .list-tools,
       .offline-tools,
       .actions {
         grid-template-columns: 1fr;
@@ -592,6 +623,7 @@
       <button type="button" class="tab-button active" data-tab="quick">Quick Entry</button>
       <button type="button" class="tab-button" data-tab="defaults">Defaults</button>
       <button type="button" class="tab-button" data-tab="offline">Offline</button>
+      <button type="button" class="tab-button" data-tab="list">Customers</button>
     </nav>
 
     <section class="summary-grid" aria-label="Offline summary" data-offline-panel>
@@ -634,6 +666,15 @@
                 <input type="text" id="place" autocomplete="street-address">
                 <label class="keep-row" for="keepPlace">
                   <input type="checkbox" id="keepPlace">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="placeCode">Place Code</label>
+                <input type="text" id="placeCode" autocomplete="off">
+                <label class="keep-row" for="keepPlaceCode">
+                  <input type="checkbox" id="keepPlaceCode">
                   Keep for next customer
                 </label>
               </div>
@@ -688,18 +729,24 @@
               </div>
 
               <div class="field">
-                <label for="contact">Contact No</label>
+                <label for="contact">Contact No 1</label>
                 <input type="tel" id="contact" autocomplete="tel" inputmode="tel">
               </div>
 
               <div class="field">
+                <label for="contact2">Contact No 2</label>
+                <input type="tel" id="contact2" autocomplete="tel" inputmode="tel">
+              </div>
+
+              <div class="field">
                 <label for="orderStatus">Order Status</label>
-                <select id="orderStatus">
-                  <option>Pending</option>
-                  <option>Processing</option>
-                  <option>Completed</option>
-                  <option>Delivered</option>
-                </select>
+                <input type="text" id="orderStatus" list="orderStatusOptions" autocomplete="off" value="Pending" inputmode="text">
+                <datalist id="orderStatusOptions">
+                  <option value="Pending"></option>
+                  <option value="Processing"></option>
+                  <option value="Completed"></option>
+                  <option value="Delivered"></option>
+                </datalist>
               </div>
             </div>
           </section>
@@ -709,26 +756,36 @@
             <div class="grid">
               <div class="field">
                 <label for="frameType">Frame Type</label>
-                <select id="frameType">
-                  <option value="">Select</option>
-                  <option>Full Frame</option>
-                  <option>Half Frame</option>
-                  <option>Rimless</option>
-                  <option>Metal Frame</option>
-                  <option>Plastic Frame</option>
-                </select>
+                <input type="text" id="frameType" list="frameTypeOptions" autocomplete="off" inputmode="text">
+                <datalist id="frameTypeOptions">
+                  <option value="Full Frame"></option>
+                  <option value="Half Frame"></option>
+                  <option value="Rimless"></option>
+                  <option value="Metal Frame"></option>
+                  <option value="Plastic Frame"></option>
+                </datalist>
               </div>
 
               <div class="field">
                 <label for="lensType">Lens Type</label>
-                <select id="lensType">
-                  <option value="">Select</option>
-                  <option>Single Vision</option>
-                  <option>Bifocal</option>
-                  <option>Progressive</option>
-                  <option>Blue Cut</option>
-                  <option>Photochromic</option>
-                </select>
+                <input type="text" id="lensType" list="lensTypeOptions" autocomplete="off" inputmode="text">
+                <datalist id="lensTypeOptions">
+                  <option value="Single Vision"></option>
+                  <option value="Bifocal"></option>
+                  <option value="Progressive"></option>
+                  <option value="Blue Cut"></option>
+                  <option value="Photochromic"></option>
+                </datalist>
+              </div>
+
+              <div class="field">
+                <label for="lensType2">Lens Type 2</label>
+                <input type="text" id="lensType2" list="lensTypeOptions" autocomplete="off" inputmode="text">
+              </div>
+
+              <div class="field">
+                <label for="lensType3">Lens Type 3</label>
+                <input type="text" id="lensType3" list="lensTypeOptions" autocomplete="off" inputmode="text">
               </div>
 
               <div class="field">
@@ -742,6 +799,16 @@
               </div>
 
               <div class="field">
+                <label for="onlinePayment">Online Payment</label>
+                <input type="number" id="onlinePayment" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="secondPayment">Second Payment</label>
+                <input type="number" id="secondPayment" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
                 <label for="remainingBalance">Remaining Balance</label>
                 <input type="number" id="remainingBalance" readonly>
               </div>
@@ -749,6 +816,11 @@
               <div class="field full">
                 <label for="prescription">Prescription</label>
                 <textarea id="prescription"></textarea>
+              </div>
+
+              <div class="field full">
+                <label for="comments">Comments</label>
+                <textarea id="comments"></textarea>
               </div>
             </div>
           </section>
@@ -777,6 +849,18 @@
         </div>
         <div class="record-list" id="recordsList"></div>
       </aside>
+
+      <section class="panel customer-list-panel" data-list-panel>
+        <div class="panel-header">
+          <h2>Customer List</h2>
+          <p>Load saved sheet records, then edit, add second payment, cancel/refund, or delete.</p>
+        </div>
+        <div class="list-tools">
+          <input type="search" id="customerListSearch" placeholder="Search name, ID, phone, place">
+          <button type="button" class="btn btn-primary" id="refreshCustomerListButton">Refresh</button>
+        </div>
+        <div class="customer-list" id="customerList"></div>
+      </section>
     </div>
   </main>
 
@@ -790,6 +874,28 @@
     const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
     const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
     const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
+    const QUICK_OPTION_ALIASES = {
+      orderStatus: [
+        { value: 'Pending', aliases: ['1', 'p', 'pen', 'pending'] },
+        { value: 'Processing', aliases: ['2', 'pr', 'pro', 'processing'] },
+        { value: 'Completed', aliases: ['3', 'c', 'com', 'completed'] },
+        { value: 'Delivered', aliases: ['4', 'd', 'del', 'delivered'] }
+      ],
+      frameType: [
+        { value: 'Full Frame', aliases: ['1', 'f', 'full', 'fullframe'] },
+        { value: 'Half Frame', aliases: ['2', 'h', 'half', 'halfframe'] },
+        { value: 'Rimless', aliases: ['3', 'r', 'rim', 'rimless'] },
+        { value: 'Metal Frame', aliases: ['4', 'm', 'metal', 'metalframe'] },
+        { value: 'Plastic Frame', aliases: ['5', 'pl', 'plastic', 'plasticframe'] }
+      ],
+      lensType: [
+        { value: 'Single Vision', aliases: ['1', 's', 'single', 'singlevision'] },
+        { value: 'Bifocal', aliases: ['2', 'b', 'bi', 'bifocal'] },
+        { value: 'Progressive', aliases: ['3', 'p', 'pr', 'pro', 'progressive'] },
+        { value: 'Blue Cut', aliases: ['4', 'bc', 'blue', 'bluecut'] },
+        { value: 'Photochromic', aliases: ['5', 'ph', 'photo', 'photochromic'] }
+      ]
+    };
 
     if ((!currentUser || !sessionToken) && navigator.onLine) {
       window.location.href = window.buildLoginUrl ? window.buildLoginUrl('Fill_APP.html') : 'loginRegister.html?redirect=Fill_APP.html';
@@ -820,8 +926,19 @@
     const birthdayInput = document.getElementById('birthday');
     const representativeInput = document.getElementById('representative');
     const signOutButton = document.getElementById('signOutButton');
+    const placeCodeInput = document.getElementById('placeCode');
+    const customerIdInput = document.getElementById('customerId');
+    const onlinePaymentInput = document.getElementById('onlinePayment');
+    const secondPaymentInput = document.getElementById('secondPayment');
+    const customerList = document.getElementById('customerList');
+    const customerListSearch = document.getElementById('customerListSearch');
+    const refreshCustomerListButton = document.getElementById('refreshCustomerListButton');
 
     let editIndex = null;
+    let editSheetCustomerId = null;
+    let editAutoGeneratedComments = '';
+    let sheetCustomers = [];
+    let isCustomerIdManual = false;
     let lastEnterField = null;
     let lastEnterTime = 0;
 
@@ -843,6 +960,14 @@
 
     totalAmountInput.addEventListener('input', calculateBalance);
     advancedPaymentInput.addEventListener('input', calculateBalance);
+    onlinePaymentInput.addEventListener('input', calculateBalance);
+    secondPaymentInput.addEventListener('input', calculateBalance);
+    placeCodeInput.addEventListener('input', syncAutoCustomerId);
+    customerIdInput.addEventListener('input', handleCustomerIdInput);
+    customerIdInput.addEventListener('blur', syncAutoCustomerId);
+    ['orderStatus', 'frameType', 'lensType', 'lensType2', 'lensType3'].forEach(id => {
+      document.getElementById(id).addEventListener('blur', normalizeQuickOption);
+    });
     [birthYearInput, birthMonthInput, birthDayInput].forEach(input => {
       input.addEventListener('input', () => updateBirthdayFromParts(false));
       input.addEventListener('blur', () => updateBirthdayFromParts(true));
@@ -851,8 +976,11 @@
       button.addEventListener('click', () => {
         setActiveTab(button.dataset.tab);
         if (button.dataset.tab === 'defaults') refreshRepresentativeOptions();
+        if (button.dataset.tab === 'list') loadSheetCustomers();
       });
     });
+    refreshCustomerListButton.addEventListener('click', loadSheetCustomers);
+    customerListSearch.addEventListener('input', renderSheetCustomers);
     saveDefaultsButton.addEventListener('click', () => {
       savePersistentFields();
       setStatus('Default camp values saved.');
@@ -877,12 +1005,19 @@
       savePersistentFields();
       updateBirthdayFromParts(true);
 
-      const records = getRecords();
       const data = collectFormData();
+
+      if (editSheetCustomerId) {
+        updateSheetCustomer(data);
+        return;
+      }
+
+      const records = getRecords();
 
       if (editIndex !== null) {
         records[editIndex] = data;
         editIndex = null;
+        editSheetCustomerId = null;
         formTitle.textContent = 'New Customer Record';
         saveButton.textContent = 'Save Offline';
         setStatus('Record updated successfully.');
@@ -899,26 +1034,31 @@
     });
 
     function collectFormData() {
+      ['lensType', 'lensType2', 'lensType3'].forEach(id => normalizeQuickOption({ target: document.getElementById(id) }));
+
       return {
         timestamp: new Date().toISOString(),
         town: getValue('town'),
         place: getValue('place'),
         representative: getValue('representative') || currentRepresentative,
+        placeCode: getValue('placeCode'),
         appointmentDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
         name: getValue('name'),
         age: getValue('age'),
-        birthday: getValue('birthday'),
-        contact: getValue('contact'),
-        contactNo: getValue('contact'),
+        birthday: getBirthdayValue(),
+        contact: combineValues(getValue('contact'), getValue('contact2')),
+        contactNo: combineValues(getValue('contact'), getValue('contact2')),
         frameType: getValue('frameType'),
-        lensType: getValue('lensType'),
+        lensType: combineValues(getValue('lensType'), getValue('lensType2'), getValue('lensType3')),
         totalAmount: getValue('totalAmount'),
-        advancedPayment: getValue('advancedPayment'),
+        advancedPayment: getAdvancedPaymentTotal(),
         remainingBalance: getValue('remainingBalance'),
         orderStatus: getValue('orderStatus'),
         prescription: getValue('prescription'),
+        autoGeneratedComments: combineValues(editAutoGeneratedComments, buildAutoGeneratedComments()),
+        comments: getValue('comments'),
         uploaded: false
       };
     }
@@ -927,9 +1067,56 @@
       return document.getElementById(id).value.trim();
     }
 
+    function getBirthdayValue() {
+      updateBirthdayFromParts(true);
+      return birthdayInput.value;
+    }
+
+    function getAdvancedPaymentTotal() {
+      return [
+        getValue('advancedPayment'),
+        getValue('onlinePayment'),
+        getValue('secondPayment')
+      ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+    }
+
+    function combineValues(...values) {
+      return values
+        .map(value => String(value || '').trim())
+        .filter(Boolean)
+        .join(' / ');
+    }
+
+    function splitCombinedValue(value) {
+      return String(value || '')
+        .split('/')
+        .map(part => part.trim())
+        .filter(Boolean);
+    }
+
+    function buildAutoGeneratedComments(extraMessage) {
+      const messages = [];
+      const onlinePayment = Number(getValue('onlinePayment')) || 0;
+      const secondPayment = Number(getValue('secondPayment')) || 0;
+
+      if (onlinePayment > 0) {
+        messages.push(`Online payment Rs ${formatAmount(onlinePayment)} received`);
+      }
+
+      if (secondPayment > 0) {
+        messages.push(`Second payment Rs ${formatAmount(secondPayment)} added to advanced payment`);
+      }
+
+      if (extraMessage) {
+        messages.push(extraMessage);
+      }
+
+      return messages.join(' | ');
+    }
+
     function calculateBalance() {
       const total = Number(totalAmountInput.value) || 0;
-      const advance = Number(advancedPaymentInput.value) || 0;
+      const advance = getAdvancedPaymentTotal();
       remainingBalanceInput.value = Math.max(total - advance, 0).toFixed(2);
     }
 
@@ -943,20 +1130,69 @@
         'birthDay',
         'birthday',
         'contact',
+        'contact2',
         'frameType',
         'lensType',
+        'lensType2',
+        'lensType3',
         'totalAmount',
         'advancedPayment',
+        'onlinePayment',
+        'secondPayment',
         'remainingBalance',
-        'prescription'
+        'prescription',
+        'comments'
       ].forEach(id => document.getElementById(id).value = '');
 
       if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
+      if (!document.getElementById('keepPlaceCode').checked) document.getElementById('placeCode').value = '';
       keepRepresentativeValue();
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
+      editSheetCustomerId = null;
+      editAutoGeneratedComments = '';
+      isCustomerIdManual = false;
+      formTitle.textContent = 'New Customer Record';
+      saveButton.textContent = 'Save Offline';
+    }
+
+    function handleCustomerIdInput() {
+      const code = normalizePlaceCode(getValue('placeCode'));
+      const value = getValue('customerId');
+      isCustomerIdManual = Boolean(value && code && !isAutoCustomerId(value, code));
+    }
+
+    function syncAutoCustomerId() {
+      const code = normalizePlaceCode(getValue('placeCode'));
+      const currentId = getValue('customerId');
+      const sequence = getCustomerSequence(currentId, code);
+
+      if (!code || !sequence || isCustomerIdManual) return;
+
+      customerIdInput.value = `${code}${sequence}`;
+    }
+
+    function normalizePlaceCode(value) {
+      return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    function getCustomerSequence(customerId, code) {
+      const value = String(customerId || '').trim();
+      if (!value) return '';
+
+      const normalizedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code && normalizedValue.startsWith(code)) {
+        return normalizedValue.slice(code.length).replace(/\D/g, '');
+      }
+
+      return normalizedValue.replace(/\D/g, '');
+    }
+
+    function isAutoCustomerId(customerId, code) {
+      const sequence = getCustomerSequence(customerId, code);
+      return Boolean(sequence && normalizePlaceCode(customerId) === `${code}${sequence}`);
     }
 
     function setActiveTab(tabName) {
@@ -979,6 +1215,7 @@
       }
 
       event.preventDefault();
+      normalizeQuickOption({ target });
 
       const now = Date.now();
       const isDoubleEnter = target === lastEnterField && now - lastEnterTime < 500;
@@ -995,19 +1232,64 @@
 
     function getQuickFields() {
       return Array.from(form.querySelectorAll('.quick-section input:not([type="hidden"]), .quick-section select, .quick-section textarea'))
-        .filter(field => !field.disabled && field.offsetParent !== null);
+        .filter(field => !field.disabled && !field.readOnly && field.offsetParent !== null);
     }
 
     function focusNextQuickField(currentField) {
       const fields = getQuickFields();
       const currentIndex = fields.indexOf(currentField);
       const nextField = fields[currentIndex + 1] || fields[0];
-      if (nextField) nextField.focus();
+      focusAndReveal(nextField);
     }
 
     function focusFirstQuickField() {
       const firstEmpty = getQuickFields().find(field => field.id !== 'orderStatus' && !field.value);
-      (firstEmpty || document.getElementById('customerId')).focus();
+      focusAndReveal(firstEmpty || document.getElementById('customerId'));
+    }
+
+    function focusAndReveal(field) {
+      if (!field) return;
+      try {
+        field.focus({ preventScroll: true });
+      } catch (error) {
+        field.focus();
+      }
+      revealField(field);
+    }
+
+    function revealField(field) {
+      const target = field.closest('.field') || field;
+      [80, 280].forEach(delay => {
+        window.setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, delay);
+      });
+    }
+
+    function normalizeQuickOption(event) {
+      const field = event.target;
+      const aliasId = field && field.id && field.id.startsWith('lensType') ? 'lensType' : field.id;
+      if (!field || !QUICK_OPTION_ALIASES[aliasId]) return;
+      field.value = matchQuickOption(aliasId, field.value);
+    }
+
+    function matchQuickOption(fieldId, value) {
+      const text = String(value || '').trim();
+      if (!text) return fieldId === 'orderStatus' ? 'Pending' : '';
+
+      const normalized = normalizeOptionText(text);
+      const options = QUICK_OPTION_ALIASES[fieldId] || [];
+      const aliasMatch = options.find(option => option.aliases.includes(normalized));
+      if (aliasMatch) return aliasMatch.value;
+
+      const startsWithMatch = options.find(option => normalizeOptionText(option.value).startsWith(normalized));
+      if (startsWithMatch) return startsWithMatch.value;
+
+      return text;
+    }
+
+    function normalizeOptionText(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
     function requestSubmitForm() {
@@ -1068,11 +1350,40 @@
     }
 
     function splitBirthday(value) {
-      const parts = String(value || '').split('-');
+      const normalized = normalizeBirthdayValue(value);
+      const parts = normalized.split('-');
       setValue('birthYear', parts[0] || '');
       setValue('birthMonth', parts[1] ? String(Number(parts[1])) : '');
       setValue('birthDay', parts[2] ? String(Number(parts[2])) : '');
-      setValue('birthday', value || '');
+      setValue('birthday', normalized);
+    }
+
+    function normalizeBirthdayValue(value) {
+      if (!value) return '';
+
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return formatDateInputValue(value);
+      }
+
+      const text = String(value).trim();
+      const ymdMatch = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (ymdMatch) {
+        return `${ymdMatch[1]}-${String(Number(ymdMatch[2])).padStart(2, '0')}-${String(Number(ymdMatch[3])).padStart(2, '0')}`;
+      }
+
+      const parsed = new Date(text);
+      if (!Number.isNaN(parsed.getTime())) {
+        return formatDateInputValue(parsed);
+      }
+
+      return '';
+    }
+
+    function formatDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
     function getCachedRepresentatives() {
@@ -1137,10 +1448,12 @@
       const persistentData = {
         town: document.getElementById('keepTown').checked ? getValue('town') : '',
         place: document.getElementById('keepPlace').checked ? getValue('place') : '',
+        placeCode: document.getElementById('keepPlaceCode').checked ? getValue('placeCode') : '',
         representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
         appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
         keepTown: document.getElementById('keepTown').checked,
         keepPlace: document.getElementById('keepPlace').checked,
+        keepPlaceCode: document.getElementById('keepPlaceCode').checked,
         keepRepresentative: document.getElementById('keepRepresentative').checked,
         keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
       };
@@ -1154,10 +1467,12 @@
 
       document.getElementById('town').value = persistentData.town || '';
       document.getElementById('place').value = persistentData.place || '';
+      document.getElementById('placeCode').value = persistentData.placeCode || '';
       populateRepresentativeOptions(getCachedRepresentatives(), persistentData.representative || currentRepresentative);
       document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
       document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
       document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
+      document.getElementById('keepPlaceCode').checked = Boolean(persistentData.keepPlaceCode);
       document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
       document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
     }
@@ -1206,22 +1521,29 @@
 
       setValue('town', record.town);
       setValue('place', record.place);
+      setValue('placeCode', record.placeCode);
       populateRepresentativeOptions(getCachedRepresentatives(), record.representative || currentRepresentative);
       setValue('appointmentDate', record.appointmentDate);
       setValue('customerId', record.customerId || record.customerID);
       setValue('name', record.name);
       setValue('age', record.age);
       splitBirthday(record.birthday);
-      setValue('contact', record.contact || record.contactNo);
+      splitIntoFields(record.contact || record.contactNo, ['contact', 'contact2']);
       setValue('frameType', record.frameType);
-      setValue('lensType', record.lensType);
+      splitIntoFields(record.lensType, ['lensType', 'lensType2', 'lensType3']);
       setValue('totalAmount', record.totalAmount);
       setValue('advancedPayment', record.advancedPayment);
+      setValue('onlinePayment', '');
+      setValue('secondPayment', '');
       setValue('remainingBalance', record.remainingBalance);
       setValue('orderStatus', record.orderStatus || 'Pending');
       setValue('prescription', record.prescription);
+      setValue('comments', record.comments);
+      editAutoGeneratedComments = record.autoGeneratedComments || '';
 
       editIndex = index;
+      editSheetCustomerId = null;
+      isCustomerIdManual = true;
       formTitle.textContent = 'Edit Customer Record';
       saveButton.textContent = 'Update Offline';
       setStatus('Editing offline record.');
@@ -1233,6 +1555,13 @@
       document.getElementById(id).value = value || '';
     }
 
+    function splitIntoFields(value, fieldIds) {
+      const parts = splitCombinedValue(value);
+      fieldIds.forEach((id, index) => {
+        setValue(id, parts[index] || '');
+      });
+    }
+
     function deleteRecord(index) {
       if (!confirm('Delete this record?')) return;
 
@@ -1241,6 +1570,207 @@
       saveRecords(records);
       loadOfflineRecords();
       setStatus('Record deleted.');
+    }
+
+    async function loadSheetCustomers() {
+      if (!navigator.onLine || !sessionToken) {
+        customerList.innerHTML = '<div class="empty">Go online and sign in to load sheet customers.</div>';
+        return;
+      }
+
+      customerList.innerHTML = '<div class="empty">Loading customers...</div>';
+
+      try {
+        const response = await fetch(`${SCRIPT_URL}?type=customers&token=${encodeURIComponent(sessionToken)}`);
+        const result = await response.json();
+        sheetCustomers = Array.isArray(result) ? result : (result.customers || result.data || []);
+        renderSheetCustomers();
+      } catch (error) {
+        console.error(error);
+        customerList.innerHTML = '<div class="empty">Customer list failed to load.</div>';
+      }
+    }
+
+    function renderSheetCustomers() {
+      const search = customerListSearch.value.trim().toLowerCase();
+      const filtered = sheetCustomers.filter(customer => {
+        const text = [
+          customer.customerID,
+          customer.customerId,
+          customer.name,
+          customer.contactNo,
+          customer.contact,
+          customer.place,
+          customer.placeCode,
+          customer.orderStatus
+        ].join(' ').toLowerCase();
+        return !search || text.includes(search);
+      });
+
+      customerList.innerHTML = '';
+
+      if (!filtered.length) {
+        customerList.innerHTML = '<div class="empty">No customers found.</div>';
+        return;
+      }
+
+      filtered.forEach(customer => {
+        const item = document.createElement('article');
+        item.className = 'record';
+        item.innerHTML = `
+          <div class="record-main">
+            <div>
+              <h3>${escapeHtml(customer.name || 'Unnamed Customer')}</h3>
+              <div class="record-details">
+                <span>${escapeHtml(customer.customerID || customer.customerId || '-')} | ${escapeHtml(customer.contactNo || customer.contact || '-')}</span>
+                <span>${escapeHtml(customer.place || '-')} ${customer.placeCode ? `(${escapeHtml(customer.placeCode)})` : ''} / ${escapeHtml(customer.representative || '-')}</span>
+                <span>${escapeHtml(customer.lensType || 'No lens selected')} | ${formatAmount(Number(customer.totalAmount) || 0)}</span>
+                <span>${escapeHtml(customer.autoGeneratedComments || '')}</span>
+              </div>
+            </div>
+            <span class="badge">${escapeHtml(customer.orderStatus || 'Pending')}</span>
+          </div>
+          <div class="record-actions">
+            <button type="button" class="btn btn-warning" data-action="edit">Edit</button>
+            <button type="button" class="btn btn-neutral" data-action="cancel">Cancel/Refund</button>
+            <button type="button" class="btn btn-danger" data-action="delete">Delete</button>
+          </div>
+        `;
+
+        item.querySelector('[data-action="edit"]').addEventListener('click', () => editSheetCustomer(customer));
+        item.querySelector('[data-action="cancel"]').addEventListener('click', () => cancelAndRefundCustomer(customer));
+        item.querySelector('[data-action="delete"]').addEventListener('click', () => deleteSheetCustomer(customer));
+        customerList.appendChild(item);
+      });
+    }
+
+    function editSheetCustomer(customer) {
+      fillFormFromCustomer(customer);
+      editSheetCustomerId = customer.customerID || customer.customerId;
+      editAutoGeneratedComments = customer.autoGeneratedComments || '';
+      editIndex = null;
+      formTitle.textContent = 'Edit Sheet Customer';
+      saveButton.textContent = 'Update Sheet';
+      setStatus('Editing sheet customer. Add second payment if needed, then update.');
+      setActiveTab('quick');
+      focusAndReveal(document.getElementById('name'));
+    }
+
+    function fillFormFromCustomer(customer) {
+      setValue('town', customer.town);
+      setValue('place', customer.place);
+      setValue('placeCode', customer.placeCode);
+      populateRepresentativeOptions(getCachedRepresentatives(), customer.representative || currentRepresentative);
+      setValue('appointmentDate', customer.appointmentDate);
+      setValue('customerId', customer.customerID || customer.customerId);
+      setValue('name', customer.name);
+      setValue('age', customer.age);
+      splitBirthday(customer.birthday);
+      splitIntoFields(customer.contactNo || customer.contact, ['contact', 'contact2']);
+      setValue('frameType', customer.frameType);
+      splitIntoFields(customer.lensType, ['lensType', 'lensType2', 'lensType3']);
+      setValue('totalAmount', customer.totalAmount);
+      setValue('advancedPayment', customer.advancedPayment);
+      setValue('onlinePayment', '');
+      setValue('secondPayment', '');
+      setValue('remainingBalance', customer.remainingBalance);
+      setValue('orderStatus', customer.orderStatus || 'Pending');
+      setValue('prescription', customer.prescription);
+      setValue('comments', customer.comments);
+      editAutoGeneratedComments = customer.autoGeneratedComments || '';
+      isCustomerIdManual = true;
+      calculateBalance();
+    }
+
+    async function updateSheetCustomer(data) {
+      saveButton.disabled = true;
+      setStatus('Updating sheet customer...');
+
+      try {
+        const result = await postCustomerAction('updatecustomer', {
+          ...data,
+          originalCustomerID: editSheetCustomerId
+        });
+
+        if (!result || result.success === false) {
+          throw new Error((result && result.message) || 'Update failed.');
+        }
+
+        clearCustomerFields();
+        await loadSheetCustomers();
+        setActiveTab('list');
+        setStatus('Sheet customer updated.');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || 'Sheet update failed.');
+      } finally {
+        saveButton.disabled = false;
+      }
+    }
+
+    async function cancelAndRefundCustomer(customer) {
+      const customerId = customer.customerID || customer.customerId;
+      const advanced = Number(customer.advancedPayment) || 0;
+      if (!confirm(`Cancel ${customer.name || customerId} and mark Rs ${formatAmount(advanced)} advanced as refunded?`)) return;
+
+      const refundMessage = `Cancelled: customer no longer needs spectacles. Advanced payment Rs ${formatAmount(advanced)} refunded.`;
+      const data = {
+        ...customer,
+        customerID: customerId,
+        remainingBalance: 0,
+        orderStatus: 'Cancelled - Refunded',
+        autoGeneratedComments: combineValues(customer.autoGeneratedComments, refundMessage),
+        comments: customer.comments || ''
+      };
+
+      try {
+        const result = await postCustomerAction('updatecustomer', {
+          ...data,
+          originalCustomerID: customerId
+        });
+
+        if (!result || result.success === false) {
+          throw new Error((result && result.message) || 'Cancel failed.');
+        }
+
+        await loadSheetCustomers();
+        setStatus('Customer marked cancelled and refunded.');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || 'Cancel/refund failed.');
+      }
+    }
+
+    async function deleteSheetCustomer(customer) {
+      const customerId = customer.customerID || customer.customerId;
+      if (!customerId || !confirm(`Delete ${customer.name || customerId} from the sheet?`)) return;
+
+      try {
+        const result = await postCustomerAction('deletecustomer', { customerID: customerId });
+        if (!result || result.success === false) {
+          throw new Error((result && result.message) || 'Delete failed.');
+        }
+
+        await loadSheetCustomers();
+        setStatus('Sheet customer deleted.');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || 'Delete failed.');
+      }
+    }
+
+    function postCustomerAction(type, data) {
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          type,
+          data,
+          sessionToken
+        })
+      }).then(response => response.json());
     }
 
     function downloadOfflineBackup() {

@@ -630,6 +630,15 @@
               </div>
 
               <div class="field">
+                <label for="placeCode">Place Code</label>
+                <input type="text" id="placeCode" autocomplete="off">
+                <label class="keep-row" for="keepPlaceCode">
+                  <input type="checkbox" id="keepPlaceCode">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
                 <label for="representative">Representative</label>
                 <input type="text" id="representative" list="representativeOptions" autocomplete="off">
                 <datalist id="representativeOptions"></datalist>
@@ -680,18 +689,24 @@
               </div>
 
               <div class="field">
-                <label for="contact">Contact No</label>
+                <label for="contact">Contact No 1</label>
                 <input type="tel" id="contact" autocomplete="tel" inputmode="tel">
               </div>
 
               <div class="field">
+                <label for="contact2">Contact No 2</label>
+                <input type="tel" id="contact2" autocomplete="tel" inputmode="tel">
+              </div>
+
+              <div class="field">
                 <label for="orderStatus">Order Status</label>
-                <select id="orderStatus">
-                  <option>Pending</option>
-                  <option>Processing</option>
-                  <option>Completed</option>
-                  <option>Delivered</option>
-                </select>
+                <input type="text" id="orderStatus" list="orderStatusOptions" autocomplete="off" value="Pending" inputmode="text">
+                <datalist id="orderStatusOptions">
+                  <option value="Pending"></option>
+                  <option value="Processing"></option>
+                  <option value="Completed"></option>
+                  <option value="Delivered"></option>
+                </datalist>
               </div>
             </div>
           </section>
@@ -701,26 +716,36 @@
             <div class="grid">
               <div class="field">
                 <label for="frameType">Frame Type</label>
-                <select id="frameType">
-                  <option value="">Select</option>
-                  <option>Full Frame</option>
-                  <option>Half Frame</option>
-                  <option>Rimless</option>
-                  <option>Metal Frame</option>
-                  <option>Plastic Frame</option>
-                </select>
+                <input type="text" id="frameType" list="frameTypeOptions" autocomplete="off" inputmode="text">
+                <datalist id="frameTypeOptions">
+                  <option value="Full Frame"></option>
+                  <option value="Half Frame"></option>
+                  <option value="Rimless"></option>
+                  <option value="Metal Frame"></option>
+                  <option value="Plastic Frame"></option>
+                </datalist>
               </div>
 
               <div class="field">
                 <label for="lensType">Lens Type</label>
-                <select id="lensType">
-                  <option value="">Select</option>
-                  <option>Single Vision</option>
-                  <option>Bifocal</option>
-                  <option>Progressive</option>
-                  <option>Blue Cut</option>
-                  <option>Photochromic</option>
-                </select>
+                <input type="text" id="lensType" list="lensTypeOptions" autocomplete="off" inputmode="text">
+                <datalist id="lensTypeOptions">
+                  <option value="Single Vision"></option>
+                  <option value="Bifocal"></option>
+                  <option value="Progressive"></option>
+                  <option value="Blue Cut"></option>
+                  <option value="Photochromic"></option>
+                </datalist>
+              </div>
+
+              <div class="field">
+                <label for="lensType2">Lens Type 2</label>
+                <input type="text" id="lensType2" list="lensTypeOptions" autocomplete="off" inputmode="text">
+              </div>
+
+              <div class="field">
+                <label for="lensType3">Lens Type 3</label>
+                <input type="text" id="lensType3" list="lensTypeOptions" autocomplete="off" inputmode="text">
               </div>
 
               <div class="field">
@@ -734,6 +759,16 @@
               </div>
 
               <div class="field">
+                <label for="onlinePayment">Online Payment</label>
+                <input type="number" id="onlinePayment" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="secondPayment">Second Payment</label>
+                <input type="number" id="secondPayment" inputmode="decimal" min="0" step="0.01">
+              </div>
+
+              <div class="field">
                 <label for="remainingBalance">Remaining Balance</label>
                 <input type="number" id="remainingBalance" readonly>
               </div>
@@ -741,6 +776,11 @@
               <div class="field full">
                 <label for="prescription">Prescription</label>
                 <textarea id="prescription"></textarea>
+              </div>
+
+              <div class="field full">
+                <label for="comments">Comments</label>
+                <textarea id="comments"></textarea>
               </div>
             </div>
           </section>
@@ -778,6 +818,28 @@
     const PERSISTENT_KEY = 'campOfflinePersistentData';
     const REPRESENTATIVES_KEY = 'offlineRepresentativeOptions';
     const currentRepresentative = '';
+    const QUICK_OPTION_ALIASES = {
+      orderStatus: [
+        { value: 'Pending', aliases: ['1', 'p', 'pen', 'pending'] },
+        { value: 'Processing', aliases: ['2', 'pr', 'pro', 'processing'] },
+        { value: 'Completed', aliases: ['3', 'c', 'com', 'completed'] },
+        { value: 'Delivered', aliases: ['4', 'd', 'del', 'delivered'] }
+      ],
+      frameType: [
+        { value: 'Full Frame', aliases: ['1', 'f', 'full', 'fullframe'] },
+        { value: 'Half Frame', aliases: ['2', 'h', 'half', 'halfframe'] },
+        { value: 'Rimless', aliases: ['3', 'r', 'rim', 'rimless'] },
+        { value: 'Metal Frame', aliases: ['4', 'm', 'metal', 'metalframe'] },
+        { value: 'Plastic Frame', aliases: ['5', 'pl', 'plastic', 'plasticframe'] }
+      ],
+      lensType: [
+        { value: 'Single Vision', aliases: ['1', 's', 'single', 'singlevision'] },
+        { value: 'Bifocal', aliases: ['2', 'b', 'bi', 'bifocal'] },
+        { value: 'Progressive', aliases: ['3', 'p', 'pr', 'pro', 'progressive'] },
+        { value: 'Blue Cut', aliases: ['4', 'bc', 'blue', 'bluecut'] },
+        { value: 'Photochromic', aliases: ['5', 'ph', 'photo', 'photochromic'] }
+      ]
+    };
 
     const form = document.getElementById('opticalForm');
     const app = document.querySelector('.app');
@@ -804,8 +866,14 @@
     const birthdayInput = document.getElementById('birthday');
     const representativeInput = document.getElementById('representative');
     const onlineFormButton = document.getElementById('onlineFormButton');
+    const placeCodeInput = document.getElementById('placeCode');
+    const customerIdInput = document.getElementById('customerId');
+    const onlinePaymentInput = document.getElementById('onlinePayment');
+    const secondPaymentInput = document.getElementById('secondPayment');
 
     let editIndex = null;
+    let editAutoGeneratedComments = '';
+    let isCustomerIdManual = false;
     let lastEnterField = null;
     let lastEnterTime = 0;
 
@@ -818,6 +886,14 @@
 
     totalAmountInput.addEventListener('input', calculateBalance);
     advancedPaymentInput.addEventListener('input', calculateBalance);
+    onlinePaymentInput.addEventListener('input', calculateBalance);
+    secondPaymentInput.addEventListener('input', calculateBalance);
+    placeCodeInput.addEventListener('input', syncAutoCustomerId);
+    customerIdInput.addEventListener('input', handleCustomerIdInput);
+    customerIdInput.addEventListener('blur', syncAutoCustomerId);
+    ['orderStatus', 'frameType', 'lensType', 'lensType2', 'lensType3'].forEach(id => {
+      document.getElementById(id).addEventListener('blur', normalizeQuickOption);
+    });
     [birthYearInput, birthMonthInput, birthDayInput].forEach(input => {
       input.addEventListener('input', () => updateBirthdayFromParts(false));
       input.addEventListener('blur', () => updateBirthdayFromParts(true));
@@ -866,26 +942,31 @@
     });
 
     function collectFormData() {
+      ['lensType', 'lensType2', 'lensType3'].forEach(id => normalizeQuickOption({ target: document.getElementById(id) }));
+
       return {
         timestamp: new Date().toISOString(),
         town: getValue('town'),
         place: getValue('place'),
+        placeCode: getValue('placeCode'),
         representative: getValue('representative') || currentRepresentative,
         appointmentDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
         name: getValue('name'),
         age: getValue('age'),
-        birthday: getValue('birthday'),
-        contact: getValue('contact'),
-        contactNo: getValue('contact'),
+        birthday: getBirthdayValue(),
+        contact: combineValues(getValue('contact'), getValue('contact2')),
+        contactNo: combineValues(getValue('contact'), getValue('contact2')),
         frameType: getValue('frameType'),
-        lensType: getValue('lensType'),
+        lensType: combineValues(getValue('lensType'), getValue('lensType2'), getValue('lensType3')),
         totalAmount: getValue('totalAmount'),
-        advancedPayment: getValue('advancedPayment'),
+        advancedPayment: getAdvancedPaymentTotal(),
         remainingBalance: getValue('remainingBalance'),
         orderStatus: getValue('orderStatus'),
         prescription: getValue('prescription'),
+        autoGeneratedComments: combineValues(editAutoGeneratedComments, buildAutoGeneratedComments()),
+        comments: getValue('comments'),
         uploaded: false
       };
     }
@@ -894,9 +975,47 @@
       return document.getElementById(id).value.trim();
     }
 
+    function getBirthdayValue() {
+      updateBirthdayFromParts(true);
+      return birthdayInput.value;
+    }
+
+    function getAdvancedPaymentTotal() {
+      return [
+        getValue('advancedPayment'),
+        getValue('onlinePayment'),
+        getValue('secondPayment')
+      ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+    }
+
+    function combineValues(...values) {
+      return values
+        .map(value => String(value || '').trim())
+        .filter(Boolean)
+        .join(' / ');
+    }
+
+    function splitCombinedValue(value) {
+      return String(value || '')
+        .split('/')
+        .map(part => part.trim())
+        .filter(Boolean);
+    }
+
+    function buildAutoGeneratedComments() {
+      const messages = [];
+      const onlinePayment = Number(getValue('onlinePayment')) || 0;
+      const secondPayment = Number(getValue('secondPayment')) || 0;
+
+      if (onlinePayment > 0) messages.push(`Online payment Rs ${formatAmount(onlinePayment)} received`);
+      if (secondPayment > 0) messages.push(`Second payment Rs ${formatAmount(secondPayment)} added to advanced payment`);
+
+      return messages.join(' | ');
+    }
+
     function calculateBalance() {
       const total = Number(totalAmountInput.value) || 0;
-      const advance = Number(advancedPaymentInput.value) || 0;
+      const advance = getAdvancedPaymentTotal();
       remainingBalanceInput.value = Math.max(total - advance, 0).toFixed(2);
     }
 
@@ -910,20 +1029,66 @@
         'birthDay',
         'birthday',
         'contact',
+        'contact2',
         'frameType',
         'lensType',
+        'lensType2',
+        'lensType3',
         'totalAmount',
         'advancedPayment',
+        'onlinePayment',
+        'secondPayment',
         'remainingBalance',
-        'prescription'
+        'prescription',
+        'comments'
       ].forEach(id => document.getElementById(id).value = '');
 
       if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
+      if (!document.getElementById('keepPlaceCode').checked) document.getElementById('placeCode').value = '';
       keepRepresentativeValue();
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
+      editAutoGeneratedComments = '';
+      isCustomerIdManual = false;
+    }
+
+    function handleCustomerIdInput() {
+      const code = normalizePlaceCode(getValue('placeCode'));
+      const value = getValue('customerId');
+      isCustomerIdManual = Boolean(value && code && !isAutoCustomerId(value, code));
+    }
+
+    function syncAutoCustomerId() {
+      const code = normalizePlaceCode(getValue('placeCode'));
+      const currentId = getValue('customerId');
+      const sequence = getCustomerSequence(currentId, code);
+
+      if (!code || !sequence || isCustomerIdManual) return;
+
+      customerIdInput.value = `${code}${sequence}`;
+    }
+
+    function normalizePlaceCode(value) {
+      return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    function getCustomerSequence(customerId, code) {
+      const value = String(customerId || '').trim();
+      if (!value) return '';
+
+      const normalizedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code && normalizedValue.startsWith(code)) {
+        return normalizedValue.slice(code.length).replace(/\D/g, '');
+      }
+
+      return normalizedValue.replace(/\D/g, '');
+    }
+
+    function isAutoCustomerId(customerId, code) {
+      const sequence = getCustomerSequence(customerId, code);
+      return Boolean(sequence && normalizePlaceCode(customerId) === `${code}${sequence}`);
     }
 
     function setActiveTab(tabName) {
@@ -946,6 +1111,7 @@
       }
 
       event.preventDefault();
+      normalizeQuickOption({ target });
 
       const now = Date.now();
       const isDoubleEnter = target === lastEnterField && now - lastEnterTime < 500;
@@ -962,19 +1128,64 @@
 
     function getQuickFields() {
       return Array.from(form.querySelectorAll('.quick-section input:not([type="hidden"]), .quick-section select, .quick-section textarea'))
-        .filter(field => !field.disabled && field.offsetParent !== null);
+        .filter(field => !field.disabled && !field.readOnly && field.offsetParent !== null);
     }
 
     function focusNextQuickField(currentField) {
       const fields = getQuickFields();
       const currentIndex = fields.indexOf(currentField);
       const nextField = fields[currentIndex + 1] || fields[0];
-      if (nextField) nextField.focus();
+      focusAndReveal(nextField);
     }
 
     function focusFirstQuickField() {
       const firstEmpty = getQuickFields().find(field => field.id !== 'orderStatus' && !field.value);
-      (firstEmpty || document.getElementById('customerId')).focus();
+      focusAndReveal(firstEmpty || document.getElementById('customerId'));
+    }
+
+    function focusAndReveal(field) {
+      if (!field) return;
+      try {
+        field.focus({ preventScroll: true });
+      } catch (error) {
+        field.focus();
+      }
+      revealField(field);
+    }
+
+    function revealField(field) {
+      const target = field.closest('.field') || field;
+      [80, 280].forEach(delay => {
+        window.setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, delay);
+      });
+    }
+
+    function normalizeQuickOption(event) {
+      const field = event.target;
+      const aliasId = field && field.id && field.id.startsWith('lensType') ? 'lensType' : field.id;
+      if (!field || !QUICK_OPTION_ALIASES[aliasId]) return;
+      field.value = matchQuickOption(aliasId, field.value);
+    }
+
+    function matchQuickOption(fieldId, value) {
+      const text = String(value || '').trim();
+      if (!text) return fieldId === 'orderStatus' ? 'Pending' : '';
+
+      const normalized = normalizeOptionText(text);
+      const options = QUICK_OPTION_ALIASES[fieldId] || [];
+      const aliasMatch = options.find(option => option.aliases.includes(normalized));
+      if (aliasMatch) return aliasMatch.value;
+
+      const startsWithMatch = options.find(option => normalizeOptionText(option.value).startsWith(normalized));
+      if (startsWithMatch) return startsWithMatch.value;
+
+      return text;
+    }
+
+    function normalizeOptionText(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
     function requestSubmitForm() {
@@ -1035,11 +1246,40 @@
     }
 
     function splitBirthday(value) {
-      const parts = String(value || '').split('-');
+      const normalized = normalizeBirthdayValue(value);
+      const parts = normalized.split('-');
       setValue('birthYear', parts[0] || '');
       setValue('birthMonth', parts[1] ? String(Number(parts[1])) : '');
       setValue('birthDay', parts[2] ? String(Number(parts[2])) : '');
-      setValue('birthday', value || '');
+      setValue('birthday', normalized);
+    }
+
+    function normalizeBirthdayValue(value) {
+      if (!value) return '';
+
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return formatDateInputValue(value);
+      }
+
+      const text = String(value).trim();
+      const ymdMatch = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (ymdMatch) {
+        return `${ymdMatch[1]}-${String(Number(ymdMatch[2])).padStart(2, '0')}-${String(Number(ymdMatch[3])).padStart(2, '0')}`;
+      }
+
+      const parsed = new Date(text);
+      if (!Number.isNaN(parsed.getTime())) {
+        return formatDateInputValue(parsed);
+      }
+
+      return '';
+    }
+
+    function formatDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
     function getCachedRepresentatives() {
@@ -1086,10 +1326,12 @@
       const persistentData = {
         town: document.getElementById('keepTown').checked ? getValue('town') : '',
         place: document.getElementById('keepPlace').checked ? getValue('place') : '',
+        placeCode: document.getElementById('keepPlaceCode').checked ? getValue('placeCode') : '',
         representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
         appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
         keepTown: document.getElementById('keepTown').checked,
         keepPlace: document.getElementById('keepPlace').checked,
+        keepPlaceCode: document.getElementById('keepPlaceCode').checked,
         keepRepresentative: document.getElementById('keepRepresentative').checked,
         keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
       };
@@ -1103,10 +1345,12 @@
 
       document.getElementById('town').value = persistentData.town || '';
       document.getElementById('place').value = persistentData.place || '';
+      document.getElementById('placeCode').value = persistentData.placeCode || '';
       populateRepresentativeOptions(getCachedRepresentatives(), persistentData.representative || currentRepresentative);
       document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
       document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
       document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
+      document.getElementById('keepPlaceCode').checked = Boolean(persistentData.keepPlaceCode);
       document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
       document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
     }
@@ -1155,22 +1399,29 @@
 
       setValue('town', record.town);
       setValue('place', record.place);
+      setValue('placeCode', record.placeCode);
       populateRepresentativeOptions(getCachedRepresentatives(), record.representative || currentRepresentative);
       setValue('appointmentDate', record.appointmentDate);
       setValue('customerId', record.customerId || record.customerID);
       setValue('name', record.name);
       setValue('age', record.age);
       splitBirthday(record.birthday);
-      setValue('contact', record.contact || record.contactNo);
+      splitIntoFields(record.contact || record.contactNo, ['contact', 'contact2']);
       setValue('frameType', record.frameType);
-      setValue('lensType', record.lensType);
+      splitIntoFields(record.lensType, ['lensType', 'lensType2', 'lensType3']);
       setValue('totalAmount', record.totalAmount);
       setValue('advancedPayment', record.advancedPayment);
+      setValue('onlinePayment', '');
+      setValue('secondPayment', '');
       setValue('remainingBalance', record.remainingBalance);
       setValue('orderStatus', record.orderStatus || 'Pending');
       setValue('prescription', record.prescription);
+      setValue('comments', record.comments);
+      editAutoGeneratedComments = record.autoGeneratedComments || '';
+      calculateBalance();
 
       editIndex = index;
+      isCustomerIdManual = true;
       formTitle.textContent = 'Edit Customer Record';
       saveButton.textContent = 'Update Offline';
       setStatus('Editing offline record.');
@@ -1180,6 +1431,13 @@
 
     function setValue(id, value) {
       document.getElementById(id).value = value || '';
+    }
+
+    function splitIntoFields(value, fieldIds) {
+      const parts = splitCombinedValue(value);
+      fieldIds.forEach((id, index) => {
+        setValue(id, parts[index] || '');
+      });
     }
 
     function deleteRecord(index) {

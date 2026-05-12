@@ -1,8 +1,10 @@
 function showSection(sectionId) {
-    ["DashboardForm", "CustomerForm", "ProductsForm", "OrdersForm"].forEach(id => {
+    ["DashboardForm", "CustomerForm", "ProductsForm", "OrdersForm", "HelpForm"].forEach(id => {
         document.getElementById(id).style.display = id === sectionId ? "block" : "none";
     });
 }
+
+const DASHBOARD_LOADER_SEEN_KEY = "dashboardLoaderSeen";
 
 function hideAppLoader() {
     const loader = document.getElementById("app-loader");
@@ -75,6 +77,10 @@ document.getElementById("OrdersForm-button").addEventListener("click", function 
     openSection("OrdersForm", "OrdersForm-button");
 });
 
+document.getElementById("FillingApp-button").addEventListener("click", function () {
+    sessionStorage.setItem(DASHBOARD_LOADER_SEEN_KEY, "true");
+});
+
 document.querySelectorAll(".page-back-button").forEach(button => {
     button.addEventListener("click", function () {
         openSection("DashboardForm", "Dashboard-button");
@@ -103,7 +109,7 @@ document.getElementById("Settings-button").addEventListener("click", function ()
 });
 
 document.getElementById("Help-button").addEventListener("click", function () {
-    showToast("Use Customers to record free eye checks, prescription, frame, lens, payment, and order status.");
+    openSection("HelpForm", "Help-button");
 });
 
 document.getElementById("SignOutForm-button").addEventListener("click", function () {
@@ -145,4 +151,9 @@ if (navigationUser && (window.getUserPrivilege ? window.getUserPrivilege(navigat
     document.getElementById("CustomerForm-button").style.display = "none";
 }
 
-setTimeout(hideAppLoader, 3000);
+if (sessionStorage.getItem(DASHBOARD_LOADER_SEEN_KEY) === "true") {
+    hideAppLoader();
+} else {
+    sessionStorage.setItem(DASHBOARD_LOADER_SEEN_KEY, "true");
+    setTimeout(hideAppLoader, 3000);
+}
