@@ -1,6 +1,8 @@
 window.AUTH_API_URL = window.AUTH_API_URL || window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 function getStoredUser() {
+    clearExpiredRememberedLogin();
+
     try {
         return JSON.parse(localStorage.getItem("user") || "null");
     } catch (error) {
@@ -9,6 +11,7 @@ function getStoredUser() {
 }
 
 function getSessionToken() {
+    clearExpiredRememberedLogin();
     return localStorage.getItem("sessionToken") || "";
 }
 
@@ -24,6 +27,18 @@ function getUserDisplayName(user = getStoredUser()) {
 function clearAuthState() {
     localStorage.removeItem("user");
     localStorage.removeItem("sessionToken");
+    localStorage.removeItem("rememberLogin");
+    localStorage.removeItem("savedUsername");
+    localStorage.removeItem("rememberLoginExpiresAt");
+}
+
+function clearExpiredRememberedLogin() {
+    if (localStorage.getItem("rememberLogin") !== "true") return;
+
+    const expiresAt = Number(localStorage.getItem("rememberLoginExpiresAt") || "0");
+    if (!expiresAt || Date.now() <= expiresAt) return;
+
+    clearAuthState();
 }
 
 function buildAuthedUrl(params) {

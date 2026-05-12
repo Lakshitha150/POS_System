@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Optical Camp Customer Entry</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Optical Camp Offline Entry</title>
 
   <style>
     :root {
@@ -38,7 +34,7 @@
         linear-gradient(180deg, rgba(23, 105, 224, 0.12), rgba(23, 105, 224, 0) 260px),
         var(--bg);
       color: var(--text);
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.45;
     }
 
@@ -384,10 +380,6 @@
       white-space: normal;
     }
 
-    a.btn {
-      text-decoration: none;
-    }
-
     .btn:hover {
       filter: brightness(0.96);
       transform: translateY(-1px);
@@ -569,22 +561,21 @@
       <div class="brand">
         <div class="brand-mark">OC</div>
         <div>
-          <div class="eyebrow">Optical Camp</div>
+          <div class="eyebrow">Optical Camp Offline</div>
           <h1>Customer Entry</h1>
         </div>
       </div>
 
       <div class="topbar-side">
         <div class="session-pill">
-          <strong data-auth-name>Representative</strong>
-          <span data-auth-privilege>viewer</span>
+          <strong data-auth-name>Offline Device</strong>
+          <span data-auth-privilege>backup mode</span>
         </div>
         <div class="connection-pill" id="connectionPill">
           <span class="dot" id="connectionDot"></span>
           <span id="connectionText">Online</span>
         </div>
-        <a class="btn btn-primary" href="index.html">Dashboard</a>
-        <button type="button" class="btn btn-neutral" id="signOutButton">Sign Out</button>
+        <button type="button" class="btn btn-neutral" id="onlineFormButton">Online Form</button>
       </div>
     </header>
 
@@ -640,7 +631,8 @@
 
               <div class="field">
                 <label for="representative">Representative</label>
-                <select id="representative"></select>
+                <input type="text" id="representative" list="representativeOptions" autocomplete="off">
+                <datalist id="representativeOptions"></datalist>
                 <label class="keep-row" for="keepRepresentative">
                   <input type="checkbox" id="keepRepresentative">
                   Keep for next customer
@@ -756,7 +748,7 @@
 
         <div class="actions">
           <button type="submit" class="btn btn-primary" id="saveButton">Save Offline</button>
-          <button type="button" class="btn btn-success" onclick="uploadData()">Upload Sheet</button>
+          <button type="button" class="btn btn-success" onclick="downloadOfflineBackup()">Download Backup</button>
           <button type="button" class="btn btn-danger" onclick="clearOfflineData()">Clear Offline</button>
         </div>
 
@@ -771,7 +763,7 @@
         <div class="offline-tools">
           <button type="button" class="btn btn-primary" id="downloadBackupButton">Download Backup</button>
           <button type="button" class="btn btn-neutral" id="importBackupButton">Import Backup</button>
-          <button type="button" class="btn btn-success" onclick="uploadData()">Upload Sheet</button>
+          <button type="button" class="btn btn-success" onclick="openOnlineForm()">Online Form</button>
           <button type="button" class="btn btn-danger" onclick="clearOfflineData()">Clear Offline</button>
           <input type="file" class="file-input" id="backupFileInput" accept=".json,application/json">
         </div>
@@ -780,20 +772,12 @@
     </div>
   </main>
 
-  <script src="js/auth.js"></script>
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec';
-    const STORAGE_KEY = 'opticalOrders';
-    const STORAGE_BACKUP_KEY = 'opticalOrdersBackup';
-    const PERSISTENT_KEY = 'campPersistentData';
-    const REPRESENTATIVES_KEY = 'representativeOptions';
-    const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
-    const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
-    const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
-
-    if ((!currentUser || !sessionToken) && navigator.onLine) {
-      window.location.href = window.buildLoginUrl ? window.buildLoginUrl('Fill_APP.html') : 'loginRegister.html?redirect=Fill_APP.html';
-    }
+    const STORAGE_KEY = 'opticalOfflineOrders';
+    const STORAGE_BACKUP_KEY = 'opticalOfflineOrdersBackup';
+    const PERSISTENT_KEY = 'campOfflinePersistentData';
+    const REPRESENTATIVES_KEY = 'offlineRepresentativeOptions';
+    const currentRepresentative = '';
 
     const form = document.getElementById('opticalForm');
     const app = document.querySelector('.app');
@@ -819,25 +803,16 @@
     const birthDayInput = document.getElementById('birthDay');
     const birthdayInput = document.getElementById('birthday');
     const representativeInput = document.getElementById('representative');
-    const signOutButton = document.getElementById('signOutButton');
+    const onlineFormButton = document.getElementById('onlineFormButton');
 
     let editIndex = null;
     let lastEnterField = null;
     let lastEnterTime = 0;
 
-    window.applyCurrentUserUI && window.applyCurrentUserUI();
+    applyOfflineUserUI();
     populateRepresentativeOptions(getCachedRepresentatives(), currentRepresentative);
 
-    if (window.requireLogin && navigator.onLine) {
-      window.requireLogin('Fill_APP.html').then((isAllowed) => {
-        if (isAllowed && currentRepresentative) {
-          populateRepresentativeOptions(getCachedRepresentatives(), getValue('representative') || currentRepresentative);
-        }
-      });
-    }
-
     loadPersistentFields();
-    refreshRepresentativeOptions();
     loadOfflineRecords();
     updateConnectionState();
 
@@ -850,7 +825,6 @@
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
         setActiveTab(button.dataset.tab);
-        if (button.dataset.tab === 'defaults') refreshRepresentativeOptions();
       });
     });
     saveDefaultsButton.addEventListener('click', () => {
@@ -863,14 +837,7 @@
     importBackupButton.addEventListener('click', () => backupFileInput.click());
     backupFileInput.addEventListener('change', importOfflineBackup);
     form.addEventListener('keydown', handleFastEntryKeys);
-    signOutButton.addEventListener('click', () => {
-      if (!confirm('Are you sure you want to log out?')) return;
-      if (window.logout) {
-        window.logout('loginRegister.html');
-        return;
-      }
-      window.location.href = 'loginRegister.html';
-    });
+    onlineFormButton.addEventListener('click', openOnlineForm);
 
     form.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -1094,42 +1061,24 @@
         .filter(Boolean)))
         .sort();
 
-      representativeInput.innerHTML = '<option value="">Representative</option>';
+      const list = document.getElementById('representativeOptions');
+      list.innerHTML = '';
       cleanedNames.forEach(name => {
         const option = document.createElement('option');
         option.value = name;
-        option.textContent = name;
-        representativeInput.appendChild(option);
+        list.appendChild(option);
       });
 
       representativeInput.value = selectedName || currentRepresentative || '';
     }
 
     async function refreshRepresentativeOptions() {
-      if (!navigator.onLine || !sessionToken) {
-        return;
-      }
-
-      try {
-        const response = await fetch(`${SCRIPT_URL}?type=representatives&token=${encodeURIComponent(sessionToken)}`);
-        const result = await response.json();
-        const names = Array.isArray(result) ? result : (result.representatives || []);
-
-        if (!names.length) {
-          return;
-        }
-
-        saveCachedRepresentatives(names);
-        populateRepresentativeOptions(names, getValue('representative') || currentRepresentative);
-        setStatus('Representative list updated.');
-      } catch (error) {
-        console.warn('Representative list update failed:', error);
-      }
+      populateRepresentativeOptions(getCachedRepresentatives(), getValue('representative') || currentRepresentative);
     }
 
     function keepRepresentativeValue() {
       const shouldKeep = document.getElementById('keepRepresentative').checked;
-      const selected = shouldKeep ? getValue('representative') : currentRepresentative;
+      const selected = shouldKeep ? getValue('representative') : '';
       populateRepresentativeOptions(getCachedRepresentatives(), selected);
     }
 
@@ -1363,54 +1312,17 @@
       setStatus('Offline data cleared.');
     }
 
-    async function uploadData() {
-      const records = getRecords();
-
-      if (records.length === 0) {
-        setStatus('No offline records available.');
-        return;
-      }
-
-      setStatus('Uploading records to Google Sheet...');
-
-      try {
-        const result = await uploadRecords(records);
-
-        if (!result || result.success === false) {
-          throw new Error((result && result.message) || 'Upload failed.');
-        }
-
-        localStorage.removeItem(STORAGE_KEY);
-        editIndex = null;
-        loadOfflineRecords();
-        setStatus(`Upload successful. ${result.saved || records.length} record(s) added.`);
-      } catch (error) {
-        console.error(error);
-        setStatus('Upload failed. Check internet or web app deployment.');
-      }
+    function openOnlineForm() {
+      window.location.href = 'Fill_APP.html';
     }
 
-    function uploadRecords(records) {
-      if (window.google && google.script && google.script.run) {
-        return new Promise((resolve, reject) => {
-          google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            .uploadCustomerRecords(records);
-        });
-      }
-
-      return fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify({
-          type: 'uploadcustomers',
-          data: records,
-          sessionToken: sessionToken
-        })
-      }).then(response => response.json());
+    function applyOfflineUserUI() {
+      document.querySelectorAll('[data-auth-name]').forEach(target => {
+        target.textContent = 'Offline Device';
+      });
+      document.querySelectorAll('[data-auth-privilege]').forEach(target => {
+        target.textContent = 'backup mode';
+      });
     }
 
     function getRecords() {
@@ -1486,8 +1398,7 @@
 
     window.addEventListener('online', () => {
       updateConnectionState();
-      refreshRepresentativeOptions();
-      setStatus('Internet connection detected.');
+      setStatus('Internet connection detected. Download a backup, then import it in the online form.');
     });
 
     window.addEventListener('offline', () => {

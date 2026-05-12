@@ -31,25 +31,23 @@
                 <p class="form-copy">Use the username and password stored in your Login Access sheet.</p>
                 <input type="text" id="email-login" placeholder="Username" required>
                 <input type="password" id="password-login" placeholder="Password" required>
-                <div class="destination-block">
-                    <span class="destination-label">Open after sign in</span>
-                    <div class="destination-options">
-                        <label class="destination-option">
-                            <input type="radio" name="login-destination" value="index.html">
-                            <span>Dashboard Web App</span>
-                        </label>
-                        <label class="destination-option">
-                            <input type="radio" name="login-destination" value="Fill_APP.html" checked>
-                            <span>Customer Data Filling</span>
-                        </label>
-                    </div>
-                </div>
                 <label class="remember-row" for="remember-login">
                     <input type="checkbox" id="remember-login">
                     <span>Remember my login</span>
                 </label>
                 <button type="button" id="log">Sign in</button>
             </form>
+
+            <div id="app-choice" class="app-choice" hidden>
+                <h2 class="heading">Where would you like to go?</h2>
+                <p class="form-copy">Choose the workspace you want to open now.</p>
+                <button type="button" class="choice-button" data-destination="Fill_APP.html">
+                    <span>Customer Data Filling</span>
+                </button>
+                <button type="button" class="choice-button choice-button-secondary" data-destination="index.html">
+                    <span>Dashboard Web App</span>
+                </button>
+            </div>
         </div>
     </div>
 

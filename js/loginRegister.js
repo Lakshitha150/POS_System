@@ -1,6 +1,8 @@
 const LOGIN_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 const REMEMBER_KEY = "rememberLogin";
 const SAVED_USERNAME_KEY = "savedUsername";
+const REMEMBER_EXPIRES_KEY = "rememberLoginExpiresAt";
+const REMEMBER_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
 const loginForm = document.getElementById("login-form");
 const loginButton = document.getElementById("log");
@@ -8,7 +10,8 @@ const loadingOverlay = document.getElementById("loadingOverlay");
 const usernameInput = document.getElementById("email-login");
 const passwordInput = document.getElementById("password-login");
 const rememberCheckbox = document.getElementById("remember-login");
-const destinationInputs = document.querySelectorAll("input[name='login-destination']");
+const appChoice = document.getElementById("app-choice");
+const choiceButtons = document.querySelectorAll("[data-destination]");
 const DESTINATION_KEY = "loginDestination";
 const DEFAULT_DESTINATION = "Fill_APP.html";
 
@@ -23,7 +26,6 @@ loginForm.addEventListener("submit", function(event) {
 loginButton.addEventListener("click", async () => {
     const username = usernameInput.value.trim();
     const password = passwordInput.value;
-    const destination = getPreferredDestination();
 
     if (!username || !password) {
         showToast("Enter username and password.", "error");
@@ -45,37 +47,50 @@ loginButton.addEventListener("click", async () => {
         if (rememberCheckbox.checked) {
             localStorage.setItem(REMEMBER_KEY, "true");
             localStorage.setItem(SAVED_USERNAME_KEY, username);
-            localStorage.setItem(DESTINATION_KEY, destination);
+            localStorage.setItem(REMEMBER_EXPIRES_KEY, String(Date.now() + REMEMBER_DURATION_MS));
         } else {
             localStorage.removeItem(REMEMBER_KEY);
             localStorage.removeItem(SAVED_USERNAME_KEY);
-            localStorage.setItem(DESTINATION_KEY, destination);
+            localStorage.removeItem(REMEMBER_EXPIRES_KEY);
         }
 
         showToast("Logged in successfully!", "success");
-        window.location.href = destination;
+        loadingOverlay.style.display = "none";
+        showAppChoice();
     } catch (error) {
         showToast(error.message || "Invalid username or password.", "error");
         loadingOverlay.style.display = "none";
     }
 });
 
+choiceButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        const destination = button.dataset.destination || DEFAULT_DESTINATION;
+        localStorage.setItem(DESTINATION_KEY, destination);
+        window.location.href = destination;
+    });
+});
+
 function restoreRememberedLogin() {
+    if (isRememberedLoginExpired()) {
+        clearRememberedSession();
+    }
+
     const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
     const savedUsername = localStorage.getItem(SAVED_USERNAME_KEY) || "";
-    const savedDestination = getRedirectTargetFromUrl() || localStorage.getItem(DESTINATION_KEY) || DEFAULT_DESTINATION;
 
     rememberCheckbox.checked = remembered;
     if (savedUsername) {
         usernameInput.value = savedUsername;
     }
-
-    destinationInputs.forEach(input => {
-        input.checked = input.value === savedDestination;
-    });
 }
 
 function redirectIfRememberedSessionExists() {
+    if (isRememberedLoginExpired()) {
+        clearRememberedSession();
+        return;
+    }
+
     const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
     const sessionToken = localStorage.getItem("sessionToken");
 
@@ -140,6 +155,16 @@ function loginWithSheet(username, password) {
 function clearRememberedSession() {
     localStorage.removeItem("user");
     localStorage.removeItem("sessionToken");
+    localStorage.removeItem(REMEMBER_KEY);
+    localStorage.removeItem(SAVED_USERNAME_KEY);
+    localStorage.removeItem(REMEMBER_EXPIRES_KEY);
+}
+
+function isRememberedLoginExpired() {
+    if (localStorage.getItem(REMEMBER_KEY) !== "true") return false;
+
+    const expiresAt = Number(localStorage.getItem(REMEMBER_EXPIRES_KEY) || "0");
+    return !expiresAt || Date.now() > expiresAt;
 }
 
 function getRedirectTargetFromUrl() {
@@ -160,8 +185,12 @@ function getPreferredDestination() {
     const redirectTarget = getRedirectTargetFromUrl();
     if (redirectTarget) return redirectTarget;
 
-    const selected = Array.from(destinationInputs).find(input => input.checked);
-    return (selected && selected.value) || localStorage.getItem(DESTINATION_KEY) || DEFAULT_DESTINATION;
+    return localStorage.getItem(DESTINATION_KEY) || DEFAULT_DESTINATION;
+}
+
+function showAppChoice() {
+    loginForm.hidden = true;
+    appChoice.hidden = false;
 }
 
 function showToast(message, type) {

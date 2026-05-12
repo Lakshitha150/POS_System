@@ -81,7 +81,8 @@ input {
     position: relative;
 }
 
-form {
+form,
+.app-choice {
     width: min(100%, 320px);
     display: grid;
     gap: 14px;
@@ -114,43 +115,6 @@ form {
     font-size: 14px;
     line-height: 1.6;
     color: #547178;
-}
-
-.destination-block {
-    display: grid;
-    gap: 10px;
-    margin-top: 2px;
-}
-
-.destination-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: #12343b;
-}
-
-.destination-options {
-    display: grid;
-    gap: 8px;
-}
-
-.destination-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border: 1px solid #d7e8e6;
-    border-radius: 8px;
-    background: #f5faf9;
-    color: #12343b;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.destination-option input {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    accent-color: #0f766e;
 }
 
 input {
@@ -192,6 +156,24 @@ button:active {
 
 button:focus {
     outline: none;
+}
+
+.choice-button {
+    justify-content: center;
+    text-align: center;
+}
+
+.app-choice[hidden] {
+    display: none;
+}
+
+.choice-button-secondary {
+    background: #12343b;
+    border-color: #12343b;
+}
+
+.choice-button-secondary:hover {
+    background: #0f766e;
 }
 
 .loading-overlay {
