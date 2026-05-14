@@ -428,13 +428,13 @@ document.addEventListener("DOMContentLoaded", function () {
             <td>${c.age}</td>
             <td>${c.birthday}</td>
             <td>${c.contactNo}</td>
-            <td>${c.prescription}</td>
             <td>${c.frameType}</td>
             <td>${c.lensMaterial}</td>
             <td>${c.lensType}</td>
             <td>${c.bifocalSegment}</td>
             <td>${c.coating}</td>
             <td>${c.lensModel}</td>
+            <td>${c.prescription}</td>
             <td>${c.totalAmount}</td>
             <td>${c.advancedPayment}</td>
             <td>${c.remainingBalance}</td>

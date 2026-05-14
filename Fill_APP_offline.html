@@ -797,6 +797,8 @@
                   <option value="Pending"></option>
                   <option value="Completed"></option>
                   <option value="Delivered"></option>
+                  <option value="Refund / Cancelled"></option>
+                  <option value="Cancelled - No Refund"></option>
                 </datalist>
               </div>
             </div>
@@ -815,6 +817,8 @@
                   <option value="Metal Branded"></option>
                   <option value="Plastic Branded"></option>
                   <option value="Plastic Frame"></option>
+                  <option value="Own"></option>
+                  <option value="Free"></option>
                 </datalist>
               </div>
 
@@ -908,7 +912,7 @@
                 <textarea id="prescription" hidden></textarea>
                 <div class="prescription-grid" aria-label="Prescription table">
                   <div class="prescription-side">
-                    <h3>Right <label class="plano-check"><input type="checkbox" id="rightPlano"> Plano</label></h3>
+                    <h3>Right <input type="checkbox" id="rightPlano" hidden></h3>
                     <div class="prescription-table">
                       <div class="prescription-cell prescription-head"></div>
                       <div class="prescription-cell prescription-head">SP</div>
@@ -921,7 +925,7 @@
                     </div>
                   </div>
                   <div class="prescription-side">
-                    <h3>Left <label class="plano-check"><input type="checkbox" id="leftPlano"> Plano</label></h3>
+                    <h3>Left <input type="checkbox" id="leftPlano" hidden></h3>
                     <div class="prescription-table">
                       <div class="prescription-cell prescription-head"></div>
                       <div class="prescription-cell prescription-head">SP</div>
@@ -953,6 +957,7 @@
 
         <div class="actions">
           <button type="submit" class="btn btn-primary" id="saveButton">Save Offline</button>
+          <button type="button" class="btn btn-neutral" onclick="clearCurrentForm()">Clear Details</button>
           <button type="button" class="btn btn-success" onclick="downloadOfflineBackup()">Download Backup</button>
           <button type="button" class="btn btn-danger" onclick="clearOfflineData()">Clear Offline</button>
         </div>
@@ -991,7 +996,9 @@
       orderStatus: [
         { value: 'Pending', aliases: ['1', 'p', 'pen', 'pending'] },
         { value: 'Completed', aliases: ['2', 'c', 'com', 'completed'] },
-        { value: 'Delivered', aliases: ['3', 'd', 'del', 'delivered'] }
+        { value: 'Delivered', aliases: ['3', 'd', 'del', 'delivered'] },
+        { value: 'Refund / Cancelled', aliases: ['4', 'r', 'refund', 'refunded', 'cancelrefund', 'refundcancelled'] },
+        { value: 'Cancelled - No Refund', aliases: ['5', 'cn', 'cancel', 'cancelled', 'norefund', 'cancellednorefund'] }
       ],
       frameType: [
         { value: 'Full Frame', aliases: ['1', 'f', 'full', 'fullframe'] },
@@ -999,7 +1006,9 @@
         { value: 'Rimless', aliases: ['3', 'r', 'rim', 'rimless'] },
         { value: 'Metal Branded', aliases: ['4', 'm', 'metal', 'metalbranded', 'metalframe'] },
         { value: 'Plastic Branded', aliases: ['5', 'pb', 'plasticbranded'] },
-        { value: 'Plastic Frame', aliases: ['6', 'pl', 'plastic', 'plasticframe'] }
+        { value: 'Plastic Frame', aliases: ['6', 'pl', 'plastic', 'plasticframe'] },
+        { value: 'Own', aliases: ['7', 'o', 'own'] },
+        { value: 'Free', aliases: ['8', 'fr', 'free'] }
       ],
       lensType: [
         { value: 'Single Vision', aliases: ['1', 's', 'single', 'singlevision'] },
@@ -1122,12 +1131,20 @@
     });
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
+        if (button.dataset.tab === 'quick' && !normalizePlaceCode(getValue('placeCode'))) {
+          promptForDefaultPlaceCode();
+          return;
+        }
         setActiveTab(button.dataset.tab);
       });
     });
     saveDefaultsButton.addEventListener('click', () => {
       applyPlaceFromCode();
       savePersistentFields();
+      if (!normalizePlaceCode(getValue('placeCode'))) {
+        promptForDefaultPlaceCode();
+        return;
+      }
       setStatus('Default camp values saved.');
       setActiveTab('quick');
       focusFirstQuickField();
@@ -1141,10 +1158,18 @@
     form.addEventListener('change', saveFormDraft);
     onlineFormButton.addEventListener('click', openOnlineForm);
 
+    if (!normalizePlaceCode(getValue('placeCode'))) {
+      promptForDefaultPlaceCode();
+    }
+
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       savePersistentFields();
       updateBirthdayFromParts(true);
+
+      if (!requireDefaultPlaceCode()) {
+        return;
+      }
 
       const records = getRecords();
       const data = collectFormData();
@@ -1264,6 +1289,21 @@
       localStorage.removeItem(FORM_DRAFT_KEY);
     }
 
+    function requireDefaultPlaceCode() {
+      if (normalizePlaceCode(getValue('placeCode'))) {
+        return true;
+      }
+
+      promptForDefaultPlaceCode();
+      return false;
+    }
+
+    function promptForDefaultPlaceCode() {
+      setStatus('Fill Place Code in Defaults first, then save the customer.');
+      setActiveTab('defaults');
+      focusAndReveal(placeCodeInput);
+    }
+
     function getBirthdayValue() {
       updateBirthdayFromParts(true);
       return birthdayInput.value;
@@ -1299,11 +1339,13 @@
 
       const sphereValues = [];
       for (let value = -4; value <= -0.25; value += 0.25) sphereValues.push(formatSignedPower(value));
+      sphereValues.push('Plano');
       for (let value = 0.25; value <= 4; value += 0.25) sphereValues.push(formatSignedPower(value));
       sphereOptions.innerHTML = sphereValues.map(value => `<option value="${value}"></option>`).join('');
 
       const cylinderValues = [];
       for (let value = -0.25; value >= -3; value -= 0.25) cylinderValues.push(formatSignedPower(value));
+      cylinderValues.push('Plano');
       cylinderOptions.innerHTML = cylinderValues.map(value => `<option value="${value}"></option>`).join('');
 
       const addValues = [];
@@ -1366,10 +1408,10 @@
     }
 
     function buildEyePrescription(label, side, spId, cyId, axId) {
-      if (document.getElementById(`${side}Plano`).checked) return `${label} Plano`;
       const sp = formatPrescriptionPower(getValue(spId));
       const cy = formatPrescriptionPower(getValue(cyId));
       const ax = getValue(axId);
+      if (sp === 'Plano' && !cy && !ax) return `${label} Plano`;
       const values = [];
       if (sp) values.push(sp);
       if (cy) values.push(`CY ${cy}`);
@@ -1427,11 +1469,10 @@
     }
 
     function togglePlanoEye(side) {
-      const isPlano = document.getElementById(`${side}Plano`).checked;
+      document.getElementById(`${side}Plano`).checked = false;
       [`${side}DistanceSp`, `${side}DistanceCy`, `${side}DistanceAx`].forEach(id => {
         const field = document.getElementById(id);
-        field.disabled = isPlano;
-        if (isPlano) field.value = '';
+        field.disabled = false;
       });
     }
 
@@ -1456,10 +1497,6 @@
         const sp = values.match(/\bSP\s+([+-]?\d+(?:\.\d+)?|Plano)/i);
         const cy = values.match(/\bCY\s+([+-]?\d+(?:\.\d+)?|Plano)/i);
         const ax = values.match(/\bAX\s+(\d{1,3})/i);
-        if (sp && normalizeOptionText(sp[1]) === 'plano') {
-          document.getElementById(key.startsWith('right') ? 'rightPlano' : 'leftPlano').checked = true;
-          return;
-        }
         if (sp) setValue(ids[0], normalizePrescriptionPower(sp[1]));
         if (cy) setValue(ids[1], normalizePrescriptionPower(cy[1]));
         if (ax) setValue(ids[2], ax[1]);
@@ -1526,8 +1563,6 @@
       if (right) parseEyePrescription(right[1], ['rightDistanceSp', 'rightDistanceCy', 'rightDistanceAx']);
       if (left) parseEyePrescription(left[1], ['leftDistanceSp', 'leftDistanceCy', 'leftDistanceAx']);
       if (add) setValue('addPower', formatAddPower(add[1]));
-      if (right && normalizeOptionText(right[1]) === 'plano') rightPlanoInput.checked = true;
-      if (left && normalizeOptionText(left[1]) === 'plano') leftPlanoInput.checked = true;
       togglePlanoEye('right');
       togglePlanoEye('left');
     }
@@ -1588,6 +1623,7 @@
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
+      editIndex = null;
       editAutoGeneratedComments = '';
       isCustomerIdManual = false;
     }
@@ -1689,11 +1725,17 @@
         field.focus();
       }
       revealField(field);
+      if (typeof field.select === 'function' && field.tagName !== 'SELECT') {
+        try {
+          field.select();
+        } catch (error) {}
+      }
     }
 
     function revealField(field) {
       const target = field.closest('.field') || field;
-      [80, 280].forEach(delay => {
+      target.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' });
+      [80, 260, 520].forEach(delay => {
         window.setTimeout(() => {
           target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }, delay);
@@ -1703,8 +1745,14 @@
     function normalizeQuickOption(event) {
       const field = event.target;
       const aliasId = field && field.id && field.id.startsWith('lensType') ? 'lensType' : field.id;
-      if (!field || !QUICK_OPTION_ALIASES[aliasId]) return;
-      field.value = matchQuickOption(aliasId, field.value);
+      if (!field) return;
+
+      if (QUICK_OPTION_ALIASES[aliasId]) {
+        field.value = matchQuickOption(aliasId, field.value);
+        return;
+      }
+
+      field.value = matchTextDatalistOption(field, field.value);
     }
 
     function matchQuickOption(fieldId, value) {
@@ -1720,6 +1768,38 @@
       if (startsWithMatch) return startsWithMatch.value;
 
       return text;
+    }
+
+    function matchTextDatalistOption(field, value) {
+      const text = String(value || '').trim();
+      if (!text || !isTextDatalistField(field)) return text;
+
+      const list = document.getElementById(field.getAttribute('list'));
+      if (!list) return text;
+
+      const options = Array.from(list.querySelectorAll('option'))
+        .map(option => option.value.trim())
+        .filter(Boolean);
+      if (!options.length) return text;
+
+      if (/^\d+$/.test(text)) {
+        return options[Number(text) - 1] || text;
+      }
+
+      const normalized = normalizeOptionText(text);
+      if (normalized.length < 2) return text;
+
+      const exactMatch = options.find(option => normalizeOptionText(option) === normalized);
+      if (exactMatch) return exactMatch;
+
+      const startsWithMatches = options.filter(option => normalizeOptionText(option).startsWith(normalized));
+      return startsWithMatches.length === 1 ? startsWithMatches[0] : text;
+    }
+
+    function isTextDatalistField(field) {
+      return field.tagName === 'INPUT'
+        && field.hasAttribute('list')
+        && (field.getAttribute('inputmode') || '').toLowerCase() === 'text';
     }
 
     function normalizeOptionText(value) {
@@ -2033,10 +2113,7 @@
       splitIntoFields(record.contact || record.contactNo, ['contact', 'contact2']);
       setFrameTypeFields(record.frameType);
       setLensDescriptionFields(record.lensType);
-      if (record.bifocalSegment) setValue('bifocalSegment', record.bifocalSegment);
-      if (record.coating) setValue('coating', record.coating);
-      if (record.lensMaterial) setValue('lensMaterial', record.lensMaterial);
-      if (record.lensModel) setValue('lensModel', record.lensModel);
+      applyOptionalLensFields(record);
       toggleBifocalSegment();
       toggleLensModel();
       setValue('totalAmount', record.totalAmount);
@@ -2067,6 +2144,14 @@
       const parts = splitCombinedValue(value);
       fieldIds.forEach((id, index) => {
         setValue(id, parts[index] || '');
+      });
+    }
+
+    function applyOptionalLensFields(source) {
+      ['bifocalSegment', 'coating', 'lensMaterial', 'lensModel'].forEach(id => {
+        if (Object.prototype.hasOwnProperty.call(source, id)) {
+          setValue(id, source[id]);
+        }
       });
     }
 
@@ -2187,6 +2272,19 @@
         record.name || '',
         record.timestamp || ''
       ].map(value => String(value).trim().toLowerCase()).join('|');
+    }
+
+    function clearCurrentForm() {
+      clearFormDraft();
+      clearCustomerFields();
+      calculateBalance();
+      setStatus('Customer details cleared.');
+      if (!normalizePlaceCode(getValue('placeCode'))) {
+        promptForDefaultPlaceCode();
+        return;
+      }
+      setActiveTab('quick');
+      focusFirstQuickField();
     }
 
     function clearOfflineData() {
