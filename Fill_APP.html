@@ -298,6 +298,77 @@
       grid-column: 1 / -1;
     }
 
+    .field[hidden] {
+      display: none;
+    }
+
+    .prescription-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .prescription-side {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .prescription-side h3 {
+      align-items: center;
+      background: var(--panel-soft);
+      color: var(--blue-dark);
+      display: flex;
+      font-size: 13px;
+      font-weight: 800;
+      justify-content: space-between;
+      padding: 10px 12px;
+      text-transform: uppercase;
+    }
+
+    .plano-check {
+      align-items: center;
+      display: inline-flex;
+      gap: 6px;
+      font-size: 12px;
+      text-transform: none;
+    }
+
+    .plano-check input {
+      min-height: auto;
+      width: auto;
+    }
+
+    .prescription-table {
+      display: grid;
+      grid-template-columns: 92px repeat(3, minmax(0, 1fr));
+    }
+
+    .prescription-cell {
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      min-width: 0;
+      padding: 8px;
+    }
+
+    .prescription-cell:nth-child(4n) {
+      border-right: 0;
+    }
+
+    .prescription-head,
+    .prescription-row-label {
+      align-items: center;
+      color: #26364a;
+      display: flex;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .prescription-cell input {
+      min-height: 38px;
+      padding: 8px 9px;
+    }
+
     .birth-grid {
       display: grid;
       grid-template-columns: 1.2fr 0.9fr 0.9fr;
@@ -689,7 +760,16 @@
               </div>
 
               <div class="field">
-                <label for="appointmentDate">Appointment Date</label>
+                <label for="awarenessProgramDate">Awareness Date</label>
+                <input type="date" id="awarenessProgramDate">
+                <label class="keep-row" for="keepAwarenessProgramDate">
+                  <input type="checkbox" id="keepAwarenessProgramDate">
+                  Keep for next customer
+                </label>
+              </div>
+
+              <div class="field">
+                <label for="appointmentDate">Eye Camp Date</label>
                 <input type="date" id="appointmentDate">
                 <label class="keep-row" for="keepAppointmentDate">
                   <input type="checkbox" id="keepAppointmentDate">
@@ -743,7 +823,6 @@
                 <input type="text" id="orderStatus" list="orderStatusOptions" autocomplete="off" value="Pending" inputmode="text">
                 <datalist id="orderStatusOptions">
                   <option value="Pending"></option>
-                  <option value="Processing"></option>
                   <option value="Completed"></option>
                   <option value="Delivered"></option>
                 </datalist>
@@ -761,9 +840,19 @@
                   <option value="Full Frame"></option>
                   <option value="Half Frame"></option>
                   <option value="Rimless"></option>
-                  <option value="Metal Frame"></option>
+                  <option value="Metal Branded"></option>
+                  <option value="Plastic Branded"></option>
                   <option value="Plastic Frame"></option>
                 </datalist>
+              </div>
+
+              <div class="field" id="plasticFrameCodeField" hidden>
+                <label for="plasticFrameCode">Plastic Frame Code</label>
+                <select id="plasticFrameCode">
+                  <option value="">Select Code</option>
+                  <option value="IN">IN</option>
+                  <option value="BO">BO</option>
+                </select>
               </div>
 
               <div class="field">
@@ -771,21 +860,50 @@
                 <input type="text" id="lensType" list="lensTypeOptions" autocomplete="off" inputmode="text">
                 <datalist id="lensTypeOptions">
                   <option value="Single Vision"></option>
-                  <option value="Bifocal"></option>
                   <option value="Progressive"></option>
-                  <option value="Blue Cut"></option>
-                  <option value="Photochromic"></option>
+                  <option value="Bifocal"></option>
+                </datalist>
+              </div>
+
+              <div class="field" id="bifocalSegmentField" hidden>
+                <label for="bifocalSegment">Bifocal Segment</label>
+                <input type="text" id="bifocalSegment" list="bifocalSegmentOptions" autocomplete="off" inputmode="text" value="Round Segment">
+                <datalist id="bifocalSegmentOptions">
+                  <option value="Round Segment"></option>
+                  <option value="Flat Top"></option>
                 </datalist>
               </div>
 
               <div class="field">
-                <label for="lensType2">Lens Type 2</label>
-                <input type="text" id="lensType2" list="lensTypeOptions" autocomplete="off" inputmode="text">
+                <label for="coating">Coating</label>
+                <input type="text" id="coating" list="coatingOptions" autocomplete="off" inputmode="text">
+                <datalist id="coatingOptions">
+                  <option value="White"></option>
+                  <option value="Blue Filter"></option>
+                  <option value="Photo Gray"></option>
+                  <option value="Blue Filter Photo Gray"></option>
+                </datalist>
               </div>
 
               <div class="field">
-                <label for="lensType3">Lens Type 3</label>
-                <input type="text" id="lensType3" list="lensTypeOptions" autocomplete="off" inputmode="text">
+                <label for="lensMaterial">Lens Material</label>
+                <input type="text" id="lensMaterial" list="lensMaterialOptions" autocomplete="off" inputmode="text">
+                <datalist id="lensMaterialOptions">
+                  <option value="Cr 39"></option>
+                  <option value="Branded (Nova)"></option>
+                  <option value="Branded (Other)"></option>
+                </datalist>
+              </div>
+
+              <div class="field" id="lensModelField" hidden>
+                <label for="lensModel">Lens Model</label>
+                <input type="text" id="lensModel" list="lensModelOptions" autocomplete="off" inputmode="text">
+                <datalist id="lensModelOptions">
+                  <option value="Elife"></option>
+                  <option value="Ecoline"></option>
+                  <option value="Precisa"></option>
+                  <option value="Evolution"></option>
+                </datalist>
               </div>
 
               <div class="field">
@@ -815,7 +933,42 @@
 
               <div class="field full">
                 <label for="prescription">Prescription</label>
-                <textarea id="prescription"></textarea>
+                <textarea id="prescription" hidden></textarea>
+                <div class="prescription-grid" aria-label="Prescription table">
+                  <div class="prescription-side">
+                    <h3>Right <label class="plano-check"><input type="checkbox" id="rightPlano"> Plano</label></h3>
+                    <div class="prescription-table">
+                      <div class="prescription-cell prescription-head"></div>
+                      <div class="prescription-cell prescription-head">SP</div>
+                      <div class="prescription-cell prescription-head">CY</div>
+                      <div class="prescription-cell prescription-head">AX</div>
+                      <div class="prescription-cell prescription-row-label">Distance</div>
+                      <div class="prescription-cell"><input type="text" id="rightDistanceSp" list="sphereOptions" inputmode="decimal" autocomplete="off"></div>
+                      <div class="prescription-cell"><input type="text" id="rightDistanceCy" list="cylinderOptions" inputmode="decimal" autocomplete="off"></div>
+                      <div class="prescription-cell"><input type="number" id="rightDistanceAx" min="0" max="180" step="1" inputmode="numeric"></div>
+                    </div>
+                  </div>
+                  <div class="prescription-side">
+                    <h3>Left <label class="plano-check"><input type="checkbox" id="leftPlano"> Plano</label></h3>
+                    <div class="prescription-table">
+                      <div class="prescription-cell prescription-head"></div>
+                      <div class="prescription-cell prescription-head">SP</div>
+                      <div class="prescription-cell prescription-head">CY</div>
+                      <div class="prescription-cell prescription-head">AX</div>
+                      <div class="prescription-cell prescription-row-label">Distance</div>
+                      <div class="prescription-cell"><input type="text" id="leftDistanceSp" list="sphereOptions" inputmode="decimal" autocomplete="off"></div>
+                      <div class="prescription-cell"><input type="text" id="leftDistanceCy" list="cylinderOptions" inputmode="decimal" autocomplete="off"></div>
+                      <div class="prescription-cell"><input type="number" id="leftDistanceAx" min="0" max="180" step="1" inputmode="numeric"></div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="addPower">Add</label>
+                    <input type="text" id="addPower" list="addPowerOptions" inputmode="decimal" autocomplete="off">
+                  </div>
+                </div>
+                <datalist id="sphereOptions"></datalist>
+                <datalist id="cylinderOptions"></datalist>
+                <datalist id="addPowerOptions"></datalist>
               </div>
 
               <div class="field full">
@@ -871,29 +1024,49 @@
     const STORAGE_BACKUP_KEY = 'opticalOrdersBackup';
     const PERSISTENT_KEY = 'campPersistentData';
     const REPRESENTATIVES_KEY = 'representativeOptions';
+    const PLACES_KEY = 'placeOptions';
     const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
     const sessionToken = window.getSessionToken ? window.getSessionToken() : (localStorage.getItem('sessionToken') || '');
     const currentRepresentative = window.getUserDisplayName ? window.getUserDisplayName(currentUser) : ((currentUser && (currentUser.name || currentUser.username)) || '');
     const QUICK_OPTION_ALIASES = {
       orderStatus: [
         { value: 'Pending', aliases: ['1', 'p', 'pen', 'pending'] },
-        { value: 'Processing', aliases: ['2', 'pr', 'pro', 'processing'] },
-        { value: 'Completed', aliases: ['3', 'c', 'com', 'completed'] },
-        { value: 'Delivered', aliases: ['4', 'd', 'del', 'delivered'] }
+        { value: 'Completed', aliases: ['2', 'c', 'com', 'completed'] },
+        { value: 'Delivered', aliases: ['3', 'd', 'del', 'delivered'] }
       ],
       frameType: [
         { value: 'Full Frame', aliases: ['1', 'f', 'full', 'fullframe'] },
         { value: 'Half Frame', aliases: ['2', 'h', 'half', 'halfframe'] },
         { value: 'Rimless', aliases: ['3', 'r', 'rim', 'rimless'] },
-        { value: 'Metal Frame', aliases: ['4', 'm', 'metal', 'metalframe'] },
-        { value: 'Plastic Frame', aliases: ['5', 'pl', 'plastic', 'plasticframe'] }
+        { value: 'Metal Branded', aliases: ['4', 'm', 'metal', 'metalbranded', 'metalframe'] },
+        { value: 'Plastic Branded', aliases: ['5', 'pb', 'plasticbranded'] },
+        { value: 'Plastic Frame', aliases: ['6', 'pl', 'plastic', 'plasticframe'] }
       ],
       lensType: [
         { value: 'Single Vision', aliases: ['1', 's', 'single', 'singlevision'] },
-        { value: 'Bifocal', aliases: ['2', 'b', 'bi', 'bifocal'] },
-        { value: 'Progressive', aliases: ['3', 'p', 'pr', 'pro', 'progressive'] },
-        { value: 'Blue Cut', aliases: ['4', 'bc', 'blue', 'bluecut'] },
-        { value: 'Photochromic', aliases: ['5', 'ph', 'photo', 'photochromic'] }
+        { value: 'Progressive', aliases: ['2', 'p', 'pr', 'pro', 'progressive'] },
+        { value: 'Bifocal', aliases: ['3', 'b', 'bi', 'bifocal'] }
+      ],
+      bifocalSegment: [
+        { value: 'Round Segment', aliases: ['1', 'r', 'round', 'roundsegment'] },
+        { value: 'Flat Top', aliases: ['2', 'f', 'flat', 'flattop'] }
+      ],
+      coating: [
+        { value: 'White', aliases: ['1', 'w', 'white'] },
+        { value: 'Blue Filter', aliases: ['2', 'b', 'bf', 'blue', 'bluefilter'] },
+        { value: 'Photo Gray', aliases: ['3', 'p', 'pg', 'photo', 'photogray'] },
+        { value: 'Blue Filter Photo Gray', aliases: ['4', 'bpg', 'bluefilterphotogray', 'bluephoto'] }
+      ],
+      lensMaterial: [
+        { value: 'Cr 39', aliases: ['1', 'cr', 'cr39'] },
+        { value: 'Branded (Nova)', aliases: ['2', 'n', 'nova', 'brandednova'] },
+        { value: 'Branded (Other)', aliases: ['3', 'o', 'other', 'brandedother'] }
+      ],
+      lensModel: [
+        { value: 'Elife', aliases: ['1', 'e', 'elife'] },
+        { value: 'Ecoline', aliases: ['2', 'ec', 'ecoline'] },
+        { value: 'Precisa', aliases: ['3', 'p', 'precisa'] },
+        { value: 'Evolution', aliases: ['4', 'ev', 'evolution'] }
       ]
     };
 
@@ -933,11 +1106,24 @@
     const customerList = document.getElementById('customerList');
     const customerListSearch = document.getElementById('customerListSearch');
     const refreshCustomerListButton = document.getElementById('refreshCustomerListButton');
+    const frameTypeInput = document.getElementById('frameType');
+    const plasticFrameCodeInput = document.getElementById('plasticFrameCode');
+    const plasticFrameCodeField = document.getElementById('plasticFrameCodeField');
+    const lensMaterialInput = document.getElementById('lensMaterial');
+    const lensModelInput = document.getElementById('lensModel');
+    const lensModelField = document.getElementById('lensModelField');
+    const lensTypeInput = document.getElementById('lensType');
+    const bifocalSegmentInput = document.getElementById('bifocalSegment');
+    const bifocalSegmentField = document.getElementById('bifocalSegmentField');
+    const prescriptionInput = document.getElementById('prescription');
+    const rightPlanoInput = document.getElementById('rightPlano');
+    const leftPlanoInput = document.getElementById('leftPlano');
 
     let editIndex = null;
     let editSheetCustomerId = null;
     let editAutoGeneratedComments = '';
     let sheetCustomers = [];
+    let placeOptions = [];
     let isCustomerIdManual = false;
     let lastEnterField = null;
     let lastEnterTime = 0;
@@ -954,7 +1140,9 @@
     }
 
     loadPersistentFields();
+    populatePrescriptionOptionLists();
     refreshRepresentativeOptions();
+    refreshPlaceOptions();
     loadOfflineRecords();
     updateConnectionState();
 
@@ -963,11 +1151,24 @@
     onlinePaymentInput.addEventListener('input', calculateBalance);
     secondPaymentInput.addEventListener('input', calculateBalance);
     placeCodeInput.addEventListener('input', syncAutoCustomerId);
+    placeCodeInput.addEventListener('blur', applyPlaceFromCode);
     customerIdInput.addEventListener('input', handleCustomerIdInput);
     customerIdInput.addEventListener('blur', syncAutoCustomerId);
-    ['orderStatus', 'frameType', 'lensType', 'lensType2', 'lensType3'].forEach(id => {
+    ['orderStatus', 'frameType', 'lensType', 'bifocalSegment', 'coating', 'lensMaterial', 'lensModel'].forEach(id => {
       document.getElementById(id).addEventListener('blur', normalizeQuickOption);
     });
+    enableEditablePickers();
+    frameTypeInput.addEventListener('input', togglePlasticFrameCode);
+    frameTypeInput.addEventListener('blur', togglePlasticFrameCode);
+    lensTypeInput.addEventListener('input', toggleBifocalSegment);
+    lensTypeInput.addEventListener('blur', toggleBifocalSegment);
+    lensMaterialInput.addEventListener('input', toggleLensModel);
+    lensMaterialInput.addEventListener('blur', toggleLensModel);
+    document.getElementById('addPower').addEventListener('blur', (event) => {
+      event.target.value = formatAddPower(event.target.value);
+    });
+    rightPlanoInput.addEventListener('change', () => togglePlanoEye('right'));
+    leftPlanoInput.addEventListener('change', () => togglePlanoEye('left'));
     [birthYearInput, birthMonthInput, birthDayInput].forEach(input => {
       input.addEventListener('input', () => updateBirthdayFromParts(false));
       input.addEventListener('blur', () => updateBirthdayFromParts(true));
@@ -982,6 +1183,7 @@
     refreshCustomerListButton.addEventListener('click', loadSheetCustomers);
     customerListSearch.addEventListener('input', renderSheetCustomers);
     saveDefaultsButton.addEventListener('click', () => {
+      applyPlaceFromCode();
       savePersistentFields();
       setStatus('Default camp values saved.');
       setActiveTab('quick');
@@ -1034,15 +1236,17 @@
     });
 
     function collectFormData() {
-      ['lensType', 'lensType2', 'lensType3'].forEach(id => normalizeQuickOption({ target: document.getElementById(id) }));
+      ['frameType', 'lensType', 'bifocalSegment', 'coating', 'lensMaterial', 'lensModel'].forEach(id => normalizeQuickOption({ target: document.getElementById(id) }));
+      togglePlasticFrameCode();
+      toggleBifocalSegment();
+      toggleLensModel();
+
+      const prescription = buildPrescription();
+      prescriptionInput.value = prescription;
 
       return {
         timestamp: new Date().toISOString(),
-        town: getValue('town'),
-        place: getValue('place'),
-        representative: getValue('representative') || currentRepresentative,
         placeCode: getValue('placeCode'),
-        appointmentDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
         name: getValue('name'),
@@ -1050,13 +1254,17 @@
         birthday: getBirthdayValue(),
         contact: combineValues(getValue('contact'), getValue('contact2')),
         contactNo: combineValues(getValue('contact'), getValue('contact2')),
-        frameType: getValue('frameType'),
-        lensType: combineValues(getValue('lensType'), getValue('lensType2'), getValue('lensType3')),
+        frameType: buildFrameType(),
+        lensType: buildLensDescription(),
+        bifocalSegment: normalizeOptionText(getValue('lensType')) === 'bifocal' ? getValue('bifocalSegment') : '',
+        coating: getValue('coating'),
+        lensMaterial: getValue('lensMaterial'),
+        lensModel: normalizeOptionText(getValue('lensMaterial')) === 'brandednova' ? getValue('lensModel') : '',
         totalAmount: getValue('totalAmount'),
         advancedPayment: getAdvancedPaymentTotal(),
         remainingBalance: getValue('remainingBalance'),
         orderStatus: getValue('orderStatus'),
-        prescription: getValue('prescription'),
+        prescription,
         autoGeneratedComments: combineValues(editAutoGeneratedComments, buildAutoGeneratedComments()),
         comments: getValue('comments'),
         uploaded: false
@@ -1092,6 +1300,247 @@
         .split('/')
         .map(part => part.trim())
         .filter(Boolean);
+    }
+
+    function populatePrescriptionOptionLists() {
+      const sphereOptions = document.getElementById('sphereOptions');
+      const cylinderOptions = document.getElementById('cylinderOptions');
+      const addPowerOptions = document.getElementById('addPowerOptions');
+      if (!sphereOptions || !cylinderOptions || !addPowerOptions) return;
+
+      const sphereValues = [];
+      for (let value = -4; value <= -0.25; value += 0.25) sphereValues.push(formatSignedPower(value));
+      for (let value = 0.25; value <= 4; value += 0.25) sphereValues.push(formatSignedPower(value));
+      sphereOptions.innerHTML = sphereValues.map(value => `<option value="${value}"></option>`).join('');
+
+      const cylinderValues = [];
+      for (let value = -0.25; value >= -3; value -= 0.25) cylinderValues.push(formatSignedPower(value));
+      cylinderOptions.innerHTML = cylinderValues.map(value => `<option value="${value}"></option>`).join('');
+
+      const addValues = [];
+      for (let value = 0.25; value <= 4; value += 0.25) addValues.push(formatSignedPower(value));
+      addPowerOptions.innerHTML = addValues.map(value => `<option value="${value}"></option>`).join('');
+    }
+
+    function formatSignedPower(value) {
+      const rounded = Math.round(value * 100) / 100;
+      const sign = rounded > 0 ? '+' : '';
+      return `${sign}${rounded.toFixed(2)}`;
+    }
+
+    function buildFrameType() {
+      const frameType = getValue('frameType');
+      const code = getValue('plasticFrameCode');
+      if (normalizeOptionText(frameType) === 'plasticframe' && code) {
+        return `${frameType} (${code})`;
+      }
+      return frameType;
+    }
+
+    function togglePlasticFrameCode() {
+      const isPlasticFrame = normalizeOptionText(frameTypeInput.value).replace(/in|bo$/, '') === 'plasticframe';
+      plasticFrameCodeField.hidden = !isPlasticFrame;
+      if (!isPlasticFrame) plasticFrameCodeInput.value = '';
+    }
+
+    function buildLensDescription() {
+      const lensType = getValue('lensType');
+      const segment = normalizeOptionText(lensType) === 'bifocal' ? getValue('bifocalSegment') : '';
+      const material = getValue('lensMaterial');
+      const model = normalizeOptionText(material) === 'brandednova' ? getValue('lensModel') : '';
+      const materialText = model ? `${material} Model ${model}` : material;
+      const lensText = segment ? `${lensType} (${segment})` : lensType;
+      return combineValues(lensText, getValue('coating'), materialText);
+    }
+
+    function toggleBifocalSegment() {
+      const isBifocal = normalizeOptionText(lensTypeInput.value) === 'bifocal';
+      bifocalSegmentField.hidden = !isBifocal;
+      if (isBifocal && !bifocalSegmentInput.value.trim()) {
+        bifocalSegmentInput.value = 'Round Segment';
+      }
+      if (!isBifocal) bifocalSegmentInput.value = '';
+    }
+
+    function toggleLensModel() {
+      const isNova = normalizeOptionText(lensMaterialInput.value) === 'brandednova';
+      lensModelField.hidden = !isNova;
+      if (!isNova) lensModelInput.value = '';
+    }
+
+    function buildPrescription() {
+      return [
+        buildEyePrescription('R)', 'right', 'rightDistanceSp', 'rightDistanceCy', 'rightDistanceAx'),
+        buildEyePrescription('L)', 'left', 'leftDistanceSp', 'leftDistanceCy', 'leftDistanceAx'),
+        buildAddPrescription()
+      ].filter(Boolean).join(' | ');
+    }
+
+    function buildEyePrescription(label, side, spId, cyId, axId) {
+      if (document.getElementById(`${side}Plano`).checked) return `${label} Plano`;
+      const sp = formatPrescriptionPower(getValue(spId));
+      const cy = formatPrescriptionPower(getValue(cyId));
+      const ax = getValue(axId);
+      const values = [];
+      if (sp) values.push(sp);
+      if (cy) values.push(`CY ${cy}`);
+      if (ax) values.push(`AX ${ax}`);
+      return values.length ? `${label} ${values.join(' ')}` : '';
+    }
+
+    function buildAddPrescription() {
+      const add = formatAddPower(getValue('addPower'));
+      return add ? `ADD (${add})` : '';
+    }
+
+    function formatAddPower(value) {
+      const text = String(value || '').trim();
+      if (!text) return '';
+      const numeric = Math.abs(Number(text));
+      if (!Number.isNaN(numeric) && numeric > 0) return formatSignedPower(numeric);
+      return text.startsWith('+') ? text : `+${text.replace(/^-/, '')}`;
+    }
+
+    function formatPrescriptionPower(value) {
+      const text = String(value || '').trim();
+      if (!text) return '';
+      if (normalizeOptionText(text) === 'plano' || Number(text) === 0) return 'Plano';
+      const numeric = Number(text);
+      if (!Number.isNaN(numeric)) return formatSignedPower(numeric);
+      return text;
+    }
+
+    function enableEditablePickers() {
+      form.querySelectorAll('input[list]').forEach(input => {
+        ['focus', 'click'].forEach(eventName => {
+          input.addEventListener(eventName, () => {
+            if (typeof input.showPicker === 'function') {
+              try {
+                input.showPicker();
+              } catch (error) {}
+            }
+          });
+        });
+      });
+    }
+
+    function parseEyePrescription(text, fieldIds) {
+      const sp = text.match(/(?:^|\s)(Plano|[+-]?\d+(?:\.\d+)?)(?=\s|$)/i);
+      const cy = text.match(/\bCY\s+(Plano|[+-]?\d+(?:\.\d+)?)/i);
+      const ax = text.match(/\bAX\s+(\d{1,3})/i);
+      if (sp) setValue(fieldIds[0], normalizePrescriptionPower(sp[1]));
+      if (cy) setValue(fieldIds[1], normalizePrescriptionPower(cy[1]));
+      if (ax) setValue(fieldIds[2], ax[1]);
+    }
+
+    function normalizePrescriptionPower(value) {
+      return normalizeOptionText(value) === 'plano' ? 'Plano' : value;
+    }
+
+    function togglePlanoEye(side) {
+      const isPlano = document.getElementById(`${side}Plano`).checked;
+      [`${side}DistanceSp`, `${side}DistanceCy`, `${side}DistanceAx`].forEach(id => {
+        const field = document.getElementById(id);
+        field.disabled = isPlano;
+        if (isPlano) field.value = '';
+      });
+    }
+
+    function parseLegacyPrescription(text) {
+      const idMap = {
+        rightdistance: ['rightDistanceSp', 'rightDistanceCy', 'rightDistanceAx'],
+        leftdistance: ['leftDistanceSp', 'leftDistanceCy', 'leftDistanceAx']
+      };
+
+      text.split('|').map(part => part.trim()).forEach(part => {
+        const match = part.match(/^([^:]+):\s*(.*)$/);
+        if (!match) return;
+        const key = normalizeOptionText(match[1]);
+        if (key === 'rightadd' || key === 'leftadd') {
+          const sp = match[2].match(/\bSP\s+([+-]?\d+(?:\.\d+)?)/i);
+          if (sp && !getValue('addPower')) setValue('addPower', normalizePrescriptionPower(sp[1]));
+          return;
+        }
+        const ids = idMap[key];
+        if (!ids) return;
+        const values = match[2];
+        const sp = values.match(/\bSP\s+([+-]?\d+(?:\.\d+)?|Plano)/i);
+        const cy = values.match(/\bCY\s+([+-]?\d+(?:\.\d+)?|Plano)/i);
+        const ax = values.match(/\bAX\s+(\d{1,3})/i);
+        if (sp && normalizeOptionText(sp[1]) === 'plano') {
+          document.getElementById(key.startsWith('right') ? 'rightPlano' : 'leftPlano').checked = true;
+          return;
+        }
+        if (sp) setValue(ids[0], normalizePrescriptionPower(sp[1]));
+        if (cy) setValue(ids[1], normalizePrescriptionPower(cy[1]));
+        if (ax) setValue(ids[2], ax[1]);
+      });
+    }
+
+    function clearPrescriptionFields() {
+      getPrescriptionFieldIds().forEach(id => setValue(id, ''));
+      rightPlanoInput.checked = false;
+      leftPlanoInput.checked = false;
+      togglePlanoEye('right');
+      togglePlanoEye('left');
+      prescriptionInput.value = '';
+    }
+
+    function getPrescriptionFieldIds() {
+      return [
+        'rightDistanceSp', 'rightDistanceCy', 'rightDistanceAx',
+        'leftDistanceSp', 'leftDistanceCy', 'leftDistanceAx',
+        'addPower'
+      ];
+    }
+
+    function setFrameTypeFields(value) {
+      const text = String(value || '').trim();
+      const match = text.match(/^(.*?)(?:\s*\((IN|BO)\))?$/i);
+      setValue('frameType', match ? match[1].trim() : text);
+      setValue('plasticFrameCode', match && match[2] ? match[2].toUpperCase() : '');
+      togglePlasticFrameCode();
+    }
+
+    function setLensDescriptionFields(value) {
+      const parts = splitCombinedValue(value);
+      const lensMatch = String(parts[0] || '').match(/^(.*?)\s*\((.*?)\)\s*$/);
+      setValue('lensType', lensMatch ? lensMatch[1].trim() : (parts[0] || ''));
+      const legacySegment = normalizeOptionText(parts[0]) === 'bifocal' && ['roundsegment', 'flattop'].includes(normalizeOptionText(parts[1]));
+      setValue('bifocalSegment', lensMatch ? lensMatch[2].trim() : (legacySegment ? parts[1] : ''));
+      setValue('coating', parts[legacySegment ? 2 : 1] || '');
+
+      const materialPart = parts[legacySegment ? 3 : 2] || '';
+      const modelMatch = materialPart.match(/^(.*?)\s*\/?\s*Model\s+(.+)$/i);
+      setValue('lensMaterial', modelMatch ? modelMatch[1].trim() : materialPart);
+      setValue('lensModel', modelMatch ? modelMatch[2].trim() : '');
+      toggleBifocalSegment();
+      toggleLensModel();
+    }
+
+    function setPrescriptionFields(value) {
+      clearPrescriptionFields();
+      const text = String(value || '').trim();
+      prescriptionInput.value = text;
+      if (!text) return;
+
+      if (text.includes(':')) {
+        parseLegacyPrescription(text);
+        togglePlanoEye('right');
+        togglePlanoEye('left');
+        return;
+      }
+
+      const right = text.match(/R\)\s*(.*?)(?=\s*\|\s*L\)|\s+L\)|\s*\|\s*ADD|\s+ADD|$)/i);
+      const left = text.match(/L\)\s*(.*?)(?=\s*\|\s*ADD|\s+ADD|$)/i);
+      const add = text.match(/\bADD\s*\(?\s*([+-]?\d+(?:\.\d+)?)\s*\)?/i);
+      if (right) parseEyePrescription(right[1], ['rightDistanceSp', 'rightDistanceCy', 'rightDistanceAx']);
+      if (left) parseEyePrescription(left[1], ['leftDistanceSp', 'leftDistanceCy', 'leftDistanceAx']);
+      if (add) setValue('addPower', formatAddPower(add[1]));
+      if (right && normalizeOptionText(right[1]) === 'plano') rightPlanoInput.checked = true;
+      if (left && normalizeOptionText(left[1]) === 'plano') leftPlanoInput.checked = true;
+      togglePlanoEye('right');
+      togglePlanoEye('left');
     }
 
     function buildAutoGeneratedComments(extraMessage) {
@@ -1132,9 +1581,12 @@
         'contact',
         'contact2',
         'frameType',
+        'plasticFrameCode',
         'lensType',
-        'lensType2',
-        'lensType3',
+        'bifocalSegment',
+        'coating',
+        'lensMaterial',
+        'lensModel',
         'totalAmount',
         'advancedPayment',
         'onlinePayment',
@@ -1143,6 +1595,10 @@
         'prescription',
         'comments'
       ].forEach(id => document.getElementById(id).value = '');
+      clearPrescriptionFields();
+      togglePlasticFrameCode();
+      toggleBifocalSegment();
+      toggleLensModel();
 
       if (!document.getElementById('keepTown').checked) document.getElementById('town').value = '';
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
@@ -1438,6 +1894,63 @@
       }
     }
 
+    function getCachedPlaces() {
+      try {
+        return JSON.parse(localStorage.getItem(PLACES_KEY) || '[]');
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCachedPlaces(places) {
+      localStorage.setItem(PLACES_KEY, JSON.stringify(places || []));
+    }
+
+    async function refreshPlaceOptions() {
+      placeOptions = getCachedPlaces();
+      applyPlaceFromCode();
+
+      if (!navigator.onLine || !sessionToken) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${SCRIPT_URL}?type=places&token=${encodeURIComponent(sessionToken)}`);
+        const result = await response.json();
+        const places = Array.isArray(result) ? result : (result.places || result.data || []);
+        if (!places.length) return;
+        placeOptions = places;
+        saveCachedPlaces(places);
+        applyPlaceFromCode();
+      } catch (error) {
+        console.warn('Place list update failed:', error);
+      }
+    }
+
+    function applyPlaceFromCode() {
+      const code = normalizePlaceCode(getValue('placeCode'));
+      if (!code || !placeOptions.length) return;
+
+      const place = placeOptions.find(item => normalizePlaceCode(item.placeCode || item['Place Code'] || item['Place code']) === code);
+      if (!place) return;
+
+      setValue('town', place.town || place.Town);
+      setValue('place', place.place || place.Place);
+      populateRepresentativeOptions(getCachedRepresentatives(), place.representative || place.Representative || getValue('representative') || currentRepresentative);
+      setValue('awarenessProgramDate', normalizeInputDate(place.awarenessProgramDate || place['Awareness Program Date'] || place['Awreness Program Date'] || place.discussionDate || place['Discussion Date']));
+      setValue('appointmentDate', normalizeInputDate(place.eyeCampDate || place['Eye Camp Date'] || place.decidedDate || place['Decided Date']));
+    }
+
+    function normalizeInputDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (!match) return '';
+      return `${match[1]}-${String(Number(match[2])).padStart(2, '0')}-${String(Number(match[3])).padStart(2, '0')}`;
+    }
+
     function keepRepresentativeValue() {
       const shouldKeep = document.getElementById('keepRepresentative').checked;
       const selected = shouldKeep ? getValue('representative') : currentRepresentative;
@@ -1450,11 +1963,13 @@
         place: document.getElementById('keepPlace').checked ? getValue('place') : '',
         placeCode: document.getElementById('keepPlaceCode').checked ? getValue('placeCode') : '',
         representative: document.getElementById('keepRepresentative').checked ? getValue('representative') : '',
+        awarenessProgramDate: document.getElementById('keepAwarenessProgramDate').checked ? getValue('awarenessProgramDate') : '',
         appointmentDate: document.getElementById('keepAppointmentDate').checked ? getValue('appointmentDate') : '',
         keepTown: document.getElementById('keepTown').checked,
         keepPlace: document.getElementById('keepPlace').checked,
         keepPlaceCode: document.getElementById('keepPlaceCode').checked,
         keepRepresentative: document.getElementById('keepRepresentative').checked,
+        keepAwarenessProgramDate: document.getElementById('keepAwarenessProgramDate').checked,
         keepAppointmentDate: document.getElementById('keepAppointmentDate').checked
       };
 
@@ -1469,11 +1984,13 @@
       document.getElementById('place').value = persistentData.place || '';
       document.getElementById('placeCode').value = persistentData.placeCode || '';
       populateRepresentativeOptions(getCachedRepresentatives(), persistentData.representative || currentRepresentative);
+      document.getElementById('awarenessProgramDate').value = persistentData.awarenessProgramDate || '';
       document.getElementById('appointmentDate').value = persistentData.appointmentDate || '';
       document.getElementById('keepTown').checked = Boolean(persistentData.keepTown);
       document.getElementById('keepPlace').checked = Boolean(persistentData.keepPlace);
       document.getElementById('keepPlaceCode').checked = Boolean(persistentData.keepPlaceCode);
       document.getElementById('keepRepresentative').checked = Boolean(persistentData.keepRepresentative);
+      document.getElementById('keepAwarenessProgramDate').checked = Boolean(persistentData.keepAwarenessProgramDate);
       document.getElementById('keepAppointmentDate').checked = Boolean(persistentData.keepAppointmentDate);
     }
 
@@ -1529,15 +2046,21 @@
       setValue('age', record.age);
       splitBirthday(record.birthday);
       splitIntoFields(record.contact || record.contactNo, ['contact', 'contact2']);
-      setValue('frameType', record.frameType);
-      splitIntoFields(record.lensType, ['lensType', 'lensType2', 'lensType3']);
+      setFrameTypeFields(record.frameType);
+      setLensDescriptionFields(record.lensType);
+      if (record.bifocalSegment) setValue('bifocalSegment', record.bifocalSegment);
+      if (record.coating) setValue('coating', record.coating);
+      if (record.lensMaterial) setValue('lensMaterial', record.lensMaterial);
+      if (record.lensModel) setValue('lensModel', record.lensModel);
+      toggleBifocalSegment();
+      toggleLensModel();
       setValue('totalAmount', record.totalAmount);
       setValue('advancedPayment', record.advancedPayment);
       setValue('onlinePayment', '');
       setValue('secondPayment', '');
       setValue('remainingBalance', record.remainingBalance);
       setValue('orderStatus', record.orderStatus || 'Pending');
-      setValue('prescription', record.prescription);
+      setPrescriptionFields(record.prescription);
       setValue('comments', record.comments);
       editAutoGeneratedComments = record.autoGeneratedComments || '';
 
@@ -1667,15 +2190,21 @@
       setValue('age', customer.age);
       splitBirthday(customer.birthday);
       splitIntoFields(customer.contactNo || customer.contact, ['contact', 'contact2']);
-      setValue('frameType', customer.frameType);
-      splitIntoFields(customer.lensType, ['lensType', 'lensType2', 'lensType3']);
+      setFrameTypeFields(customer.frameType);
+      setLensDescriptionFields(customer.lensType);
+      if (customer.bifocalSegment) setValue('bifocalSegment', customer.bifocalSegment);
+      if (customer.coating) setValue('coating', customer.coating);
+      if (customer.lensMaterial) setValue('lensMaterial', customer.lensMaterial);
+      if (customer.lensModel) setValue('lensModel', customer.lensModel);
+      toggleBifocalSegment();
+      toggleLensModel();
       setValue('totalAmount', customer.totalAmount);
       setValue('advancedPayment', customer.advancedPayment);
       setValue('onlinePayment', '');
       setValue('secondPayment', '');
       setValue('remainingBalance', customer.remainingBalance);
       setValue('orderStatus', customer.orderStatus || 'Pending');
-      setValue('prescription', customer.prescription);
+      setPrescriptionFields(customer.prescription);
       setValue('comments', customer.comments);
       editAutoGeneratedComments = customer.autoGeneratedComments || '';
       isCustomerIdManual = true;

@@ -15,3 +15,4 @@ google-apps-script/
 # Optional local-only frontend config
 js/config.local.js
 config.local.js
+db/POS_DB.xlsx

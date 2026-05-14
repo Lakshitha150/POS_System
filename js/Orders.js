@@ -69,8 +69,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function normalizeCustomer(customer) {
         return {
+            placeCode: customer.placeCode || customer["Place Code"] || customer["Place code"] || "",
+            customerID: customer.customerID || customer.customerId || customer["Customer ID"] || customer.custId || "",
             custName: customer.name || customer.Name || customer.custName || customer.customerName || "",
-            custContact: customer.contactNo || customer.custContact || customer.customerNumber || customer.contact || customer.mobile || customer["Contact No"] || customer["Contact Number"] || customer["Mobile Number"] || ""
+            custContact: customer.contactNo || customer.custContact || customer.customerNumber || customer.contact || customer.mobile || customer["Contact No"] || customer["Contact Number"] || customer["Mobile Number"] || "",
+            representative: customer.representative || customer.Representative || ""
         };
     }
 
@@ -171,11 +174,16 @@ document.addEventListener("DOMContentLoaded", function () {
             .map(normalizeCustomer)
             .find(customer => customer.custContact === customerSelect.value);
 
+        const orderId = buildOrderId(selectedCustomer);
         const order = {
-            order_id: "ORD-" + Date.now(),
+            order_id: orderId,
+            placeCode: selectedCustomer ? selectedCustomer.placeCode : "",
+            customerID: selectedCustomer ? selectedCustomer.customerID : "",
             contact: customerSelect.value,
             customerName: selectedCustomer ? selectedCustomer.custName : "",
+            representative: selectedCustomer ? selectedCustomer.representative : "",
             items: cart.map(item => ({ ...item })),
+            itemName: cart.map(item => item.pro_name).filter(Boolean).join(" | "),
             subtotal: parseCurrency(subtotalEl.innerText),
             discount: Number(discountEl.value) || 0,
             total: parseCurrency(totalEl.innerText),
@@ -201,6 +209,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function parseCurrency(value) {
         return Number(String(value || "0").replace(/[^\d.-]/g, "")) || 0;
+    }
+
+    function buildOrderId(customer) {
+        const placeCode = String(customer && customer.placeCode || "").trim();
+        const customerID = String(customer && customer.customerID || "").trim();
+        if (placeCode && customerID && customerID.toUpperCase().startsWith(placeCode.toUpperCase())) {
+            return customerID;
+        }
+        return `${placeCode}${customerID}` || `ORD-${Date.now()}`;
     }
 
     function escapeHtml(value) {

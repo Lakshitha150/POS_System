@@ -497,10 +497,11 @@ function normalizeCustomerRecord(customer) {
     return {
         town: customer.town || customer.Town || "",
         place: customer.place || customer.Place || "",
+        placeCode: customer.placeCode || customer["Place Code"] || customer["Place code"] || "",
         representative: customer.representative || customer.Representative || "",
         customerID: customer.customerID || customer.customerId || customer["Customer ID"] || "",
         name: customer.name || customer.Name || "",
-        appointmentDate: customer.appointmentDate || customer["Appointment Date"] || "",
+        appointmentDate: customer.appointmentDate || customer.eyeCampDate || customer["Eye Camp Date"] || customer["Appointment Date"] || "",
         orderStatus: customer.orderStatus || customer["Order Status"] || "",
         totalAmount: parseAmount(customer.totalAmount || customer["Total Amount"]),
         advancedPayment: parseAmount(customer.advancedPayment || customer["Advanced Payment"]),
@@ -512,9 +513,10 @@ function normalizePlaceRecord(placeItem) {
     return {
         town: placeItem.town || placeItem.Town || "",
         place: placeItem.place || placeItem.Place || "",
+        placeCode: placeItem.placeCode || placeItem["Place Code"] || placeItem["Place code"] || "",
         representative: placeItem.representative || placeItem.Representative || "",
-        discussionDate: parseDate(placeItem.discussionDate || placeItem["Discussion Date"]),
-        decidedDate: parseDate(placeItem.decidedDate || placeItem["Decided Date"])
+        discussionDate: parseDate(placeItem.awarenessProgramDate || placeItem["Awareness Program Date"] || placeItem["Awreness Program Date"] || placeItem.discussionDate || placeItem["Discussion Date"]),
+        decidedDate: parseDate(placeItem.eyeCampDate || placeItem["Eye Camp Date"] || placeItem.decidedDate || placeItem["Decided Date"])
     };
 }
 
