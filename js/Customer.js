@@ -1,6 +1,7 @@
 const CUSTOMER_API_URL = window.API_URL || "https://script.google.com/macros/s/AKfycbw5mmiP6dK0fN-V1T6rkl-dua0D_kXBNeDezkrPN3N-c6BeFjjBwOf0fJR_5k8wO4Xq/exec";
 
 let customerDataList = [];
+let customerPlaceList = [];
 const currentCustomerUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem("user") || "null");
 const currentRepresentativeName = window.getUserDisplayName ? window.getUserDisplayName(currentCustomerUser) : ((currentCustomerUser && (currentCustomerUser.name || currentCustomerUser.username)) || "");
 const customerIsAdmin = (window.getUserPrivilege ? window.getUserPrivilege(currentCustomerUser) : ((currentCustomerUser && currentCustomerUser.role) || "")).toLowerCase() === "admin";
@@ -62,23 +63,45 @@ document.addEventListener("DOMContentLoaded", function () {
     // LOAD CUSTOMERS
     // ======================
     async function loadCustomers() {
-        customerDataList = await window.getCustomers();
+        const [customers, places] = await Promise.all([
+            window.getCustomers(),
+            window.getPlaces ? window.getPlaces() : []
+        ]);
+        customerDataList = customers;
+        customerPlaceList = places.map(normalizePlace);
         setupCustomerFilters();
         applyCustomerFilters();
     }
 
+    window.addEventListener("pos-cache-updated", event => {
+        if (!event.detail || event.detail.type !== "customers") return;
+        customerDataList = event.detail.data || [];
+        setupCustomerFilters();
+        applyCustomerFilters();
+    });
+
+    window.addEventListener("pos-cache-updated", event => {
+        if (!event.detail || event.detail.type !== "places") return;
+        customerPlaceList = (event.detail.data || []).map(normalizePlace);
+        setupCustomerFilters();
+        applyCustomerFilters();
+    });
+
     function normalizeCustomer(c) {
+        const placeCode = c.placeCode || c["Place Code"] || c["Place code"] || "";
+        const placeDefaults = getPlaceByCode(placeCode);
         return {
-            town: c.town || c.Town || "",
-            place: c.place || c.Place || "",
-            placeCode: c.placeCode || c["Place Code"] || c["Place code"] || "",
-            representative: c.representative || c.Representative || "",
+            town: c.town || c.Town || placeDefaults.town || "",
+            place: c.place || c.Place || placeDefaults.place || "",
+            placeCode: placeCode,
+            representative: c.representative || c.Representative || placeDefaults.representative || "",
             customerID: c.customerID || c.customerId || c["Customer ID"] || c.custId || "",
             name: c.name || c.Name || c.custName || c.customerName || "",
             age: c.age || c.Age || "",
             birthday: formatDate(c.birthday || c.Birthday || ""),
             contactNo: c.contactNo || c.contact || c["Contact No"] || c["Contact Number"] || c.custContact || "",
-            appointmentDate: formatDate(c.appointmentDate || c["Appointment Date"] || ""),
+            awarenessProgramDate: formatDate(c.awarenessProgramDate || c["Awareness Program Date"] || c["Awreness Program Date"] || placeDefaults.awarenessProgramDate || ""),
+            appointmentDate: formatDate(c.appointmentDate || c.eyeCampDate || c["Eye Camp Date"] || c["Appointment Date"] || placeDefaults.eyeCampDate || ""),
             prescription: c.prescription || c.Prescription || "",
             frameType: c.frameType || c["Frame Type"] || "",
             lensMaterial: c.lensMaterial || c["Lens Material"] || "",
@@ -95,8 +118,45 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     }
 
+    function normalizePlace(place) {
+        return {
+            placeCode: place.placeCode || place["Place Code"] || place["Place code"] || "",
+            town: place.town || place.Town || "",
+            place: place.place || place.Place || "",
+            representative: place.representative || place.Representative || "",
+            awarenessProgramDate: place.awarenessProgramDate || place["Awareness Program Date"] || place["Awreness Program Date"] || place.discussionDate || place["Discussion Date"] || "",
+            eyeCampDate: place.eyeCampDate || place["Eye Camp Date"] || place.decidedDate || place["Decided Date"] || ""
+        };
+    }
+
+    function getPlaceByCode(placeCode) {
+        const code = normalizePlaceCode(placeCode);
+        return customerPlaceList.find(place => normalizePlaceCode(place.placeCode) === code) || {};
+    }
+
+    function applyPlaceDefaultsFromCode(placeCode) {
+        const place = getPlaceByCode(placeCode);
+        if (!place.placeCode) return;
+
+        document.getElementById("town").value = place.town || "";
+        document.getElementById("place").value = place.place || "";
+        document.getElementById("representative").value = place.representative || "";
+        document.getElementById("awarenessProgramDate").value = formatDate(place.awarenessProgramDate);
+        document.getElementById("appointmentDate").value = formatDate(place.eyeCampDate);
+    }
+
+    function normalizePlaceCode(value) {
+        return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    }
+
     function formatDate(value) {
         if (!value) return "";
+        if (typeof value === "number" || /^\d+(\.\d+)?$/.test(String(value).trim())) {
+            const numeric = Number(value);
+            if (numeric > 20000 && numeric < 80000) {
+                return new Date(Math.round((numeric - 25569) * 86400 * 1000)).toISOString().slice(0, 10);
+            }
+        }
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return value;
         return date.toISOString().slice(0, 10);
@@ -117,11 +177,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function setupCustomerFilters() {
         const customers = customerDataList.map(normalizeCustomer);
-        const representatives = unique(customers.map(customer => customer.representative));
+        const representatives = unique([
+            ...customers.map(customer => customer.representative),
+            ...customerPlaceList.map(place => place.representative)
+        ]);
 
         fillSelect("customer-status-filter", unique(customers.map(customer => customer.orderStatus)), "All Status");
-        fillSelect("customer-town-filter", unique(customers.map(customer => customer.town)), "All Towns");
-        fillSelect("customer-place-filter", unique(customers.map(customer => customer.place)), "All Places");
+        fillSelect("customer-town-filter", unique([...customers.map(customer => customer.town), ...customerPlaceList.map(place => place.town)]), "All Towns");
+        fillSelect("customer-place-filter", unique([...customers.map(customer => customer.place), ...customerPlaceList.map(place => place.place)]), "All Places");
         fillSelect("customer-representative-filter", representatives, "All Representatives");
         fillSelect("customer-year-filter", unique(customers.map(customer => getCustomerYear(customer))).sort(), "All Years");
         fillSelect("quickRepresentative", representatives, "Representative");
@@ -135,6 +198,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 element.dataset.bound = "true";
             }
         });
+
+        const placeCodeInput = document.getElementById("placeCode");
+        if (placeCodeInput && !placeCodeInput.dataset.bound) {
+            placeCodeInput.addEventListener("blur", () => applyPlaceDefaultsFromCode(placeCodeInput.value));
+            placeCodeInput.dataset.bound = "true";
+        }
 
         const moreButton = document.getElementById("customer-more-filters");
         const moreFilters = document.getElementById("customer-filter-more");
@@ -362,6 +431,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const updateBtn = document.createElement("button");
         updateBtn.innerText = "Update";
         updateBtn.onclick = () => {
+            document.getElementById("placeCode").value = c.placeCode;
             document.getElementById("town").value = c.town;
             document.getElementById("place").value = c.place;
             document.getElementById("representative").value = c.representative;
@@ -370,6 +440,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("age").value = c.age;
             document.getElementById("birthday").value = c.birthday;
             document.getElementById("contactNo").value = c.contactNo;
+            document.getElementById("awarenessProgramDate").value = c.awarenessProgramDate;
             document.getElementById("appointmentDate").value = c.appointmentDate;
             document.getElementById("prescription").value = c.prescription;
             document.getElementById("frameType").value = c.frameType;
@@ -378,6 +449,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("advancedPayment").value = c.advancedPayment;
             document.getElementById("remainingBalance").value = c.remainingBalance;
             document.getElementById("orderStatus").value = c.orderStatus;
+            applyPlaceDefaultsFromCode(c.placeCode);
 
             popup.style.display = "block";
             title.innerText = "Update Customer";
@@ -466,6 +538,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const customer = {
+            placeCode: document.getElementById("placeCode").value,
             town: document.getElementById("town").value,
             place: document.getElementById("place").value,
             representative: document.getElementById("representative").value || currentRepresentativeName,
@@ -474,6 +547,7 @@ document.addEventListener("DOMContentLoaded", function () {
             age: document.getElementById("age").value,
             birthday: document.getElementById("birthday").value,
             contactNo: document.getElementById("contactNo").value,
+            awarenessProgramDate: document.getElementById("awarenessProgramDate").value,
             appointmentDate: document.getElementById("appointmentDate").value,
             prescription: document.getElementById("prescription").value,
             frameType: document.getElementById("frameType").value,

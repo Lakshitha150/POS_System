@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Optical Camp Customer Entry</title>
+  <title>BB Best Brand Optical</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1023,6 +1023,9 @@
     const STORAGE_KEY = 'opticalOrders';
     const STORAGE_BACKUP_KEY = 'opticalOrdersBackup';
     const PERSISTENT_KEY = 'campPersistentData';
+    const FORM_DRAFT_KEY = 'campFormDraftV2';
+    const FORM_DRAFT_TTL_MS = 30 * 60 * 1000;
+    const APP_TIMEZONE_OFFSET_MINUTES = 5.5 * 60;
     const REPRESENTATIVES_KEY = 'representativeOptions';
     const PLACES_KEY = 'placeOptions';
     const currentUser = window.getStoredUser ? window.getStoredUser() : JSON.parse(localStorage.getItem('user') || 'null');
@@ -1141,6 +1144,7 @@
 
     loadPersistentFields();
     populatePrescriptionOptionLists();
+    restoreFormDraft();
     refreshRepresentativeOptions();
     refreshPlaceOptions();
     loadOfflineRecords();
@@ -1150,7 +1154,10 @@
     advancedPaymentInput.addEventListener('input', calculateBalance);
     onlinePaymentInput.addEventListener('input', calculateBalance);
     secondPaymentInput.addEventListener('input', calculateBalance);
-    placeCodeInput.addEventListener('input', syncAutoCustomerId);
+    placeCodeInput.addEventListener('input', () => {
+      syncAutoCustomerId();
+      applyPlaceFromCode();
+    });
     placeCodeInput.addEventListener('blur', applyPlaceFromCode);
     customerIdInput.addEventListener('input', handleCustomerIdInput);
     customerIdInput.addEventListener('blur', syncAutoCustomerId);
@@ -1193,6 +1200,8 @@
     importBackupButton.addEventListener('click', () => backupFileInput.click());
     backupFileInput.addEventListener('change', importOfflineBackup);
     form.addEventListener('keydown', handleFastEntryKeys);
+    form.addEventListener('input', saveFormDraft);
+    form.addEventListener('change', saveFormDraft);
     signOutButton.addEventListener('click', () => {
       if (!confirm('Are you sure you want to log out?')) return;
       if (window.logout) {
@@ -1229,6 +1238,7 @@
       }
 
       saveRecords(records);
+      clearFormDraft();
       clearCustomerFields();
       loadOfflineRecords();
       setActiveTab('quick');
@@ -1246,7 +1256,13 @@
 
       return {
         timestamp: new Date().toISOString(),
+        town: getValue('town'),
+        place: getValue('place'),
         placeCode: getValue('placeCode'),
+        representative: getValue('representative'),
+        awarenessProgramDate: getValue('awarenessProgramDate'),
+        appointmentDate: getValue('appointmentDate'),
+        eyeCampDate: getValue('appointmentDate'),
         customerId: getValue('customerId'),
         customerID: getValue('customerId'),
         name: getValue('name'),
@@ -1273,6 +1289,56 @@
 
     function getValue(id) {
       return document.getElementById(id).value.trim();
+    }
+
+    function saveFormDraft() {
+      const draft = {};
+      form.querySelectorAll('input, select, textarea').forEach(field => {
+        if (!field.id || field.type === 'file') return;
+        draft[field.id] = field.type === 'checkbox' ? field.checked : field.value;
+      });
+      localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        fields: draft
+      }));
+    }
+
+    function restoreFormDraft() {
+      let draft;
+      try {
+        draft = JSON.parse(localStorage.getItem(FORM_DRAFT_KEY) || 'null');
+      } catch (error) {
+        return;
+      }
+
+      if (!draft || !draft.fields) return;
+      const savedAt = new Date(draft.savedAt || 0).getTime();
+      if (!savedAt || Date.now() - savedAt > FORM_DRAFT_TTL_MS) {
+        clearFormDraft();
+        return;
+      }
+
+      Object.entries(draft.fields).forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (!field || field.type === 'file') return;
+        if (field.type === 'checkbox') {
+          field.checked = Boolean(value);
+          return;
+        }
+        field.value = value || '';
+      });
+
+      togglePlasticFrameCode();
+      toggleBifocalSegment();
+      toggleLensModel();
+      togglePlanoEye('right');
+      togglePlanoEye('left');
+      calculateBalance();
+      setStatus('Draft restored from this device.');
+    }
+
+    function clearFormDraft() {
+      localStorage.removeItem(FORM_DRAFT_KEY);
     }
 
     function getBirthdayValue() {
@@ -1604,6 +1670,7 @@
       if (!document.getElementById('keepPlace').checked) document.getElementById('place').value = '';
       if (!document.getElementById('keepPlaceCode').checked) document.getElementById('placeCode').value = '';
       keepRepresentativeValue();
+      if (!document.getElementById('keepAwarenessProgramDate').checked) document.getElementById('awarenessProgramDate').value = '';
       if (!document.getElementById('keepAppointmentDate').checked) document.getElementById('appointmentDate').value = '';
 
       document.getElementById('orderStatus').value = 'Pending';
@@ -1937,18 +2004,66 @@
       setValue('town', place.town || place.Town);
       setValue('place', place.place || place.Place);
       populateRepresentativeOptions(getCachedRepresentatives(), place.representative || place.Representative || getValue('representative') || currentRepresentative);
-      setValue('awarenessProgramDate', normalizeInputDate(place.awarenessProgramDate || place['Awareness Program Date'] || place['Awreness Program Date'] || place.discussionDate || place['Discussion Date']));
-      setValue('appointmentDate', normalizeInputDate(place.eyeCampDate || place['Eye Camp Date'] || place.decidedDate || place['Decided Date']));
+      setValue('awarenessProgramDate', normalizeInputDate(getPlaceField(place, [
+        'awarenessProgramDate',
+        'Awareness Program Date',
+        'Awreness Program Date',
+        'Discussion Date'
+      ])));
+      setValue('appointmentDate', normalizeInputDate(getPlaceField(place, [
+        'eyeCampDate',
+        'Eye Camp Date',
+        'Eye camp date',
+        'EyeCampDate',
+        'Appointment Date',
+        'Decided Date'
+      ])));
+    }
+
+    function getPlaceField(place, names) {
+      for (const name of names) {
+        if (place[name] !== undefined && place[name] !== null && place[name] !== '') {
+          return place[name];
+        }
+      }
+
+      const normalizedNames = names.map(normalizeHeaderName);
+      const key = Object.keys(place).find(itemKey => normalizedNames.includes(normalizeHeaderName(itemKey)));
+      return key ? place[key] : '';
+    }
+
+    function normalizeHeaderName(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
     function normalizeInputDate(value) {
       if (!value) return '';
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+      if (typeof value === 'number' || /^\d+(\.\d+)?$/.test(String(value).trim())) {
+        const numeric = Number(value);
+        if (numeric > 20000 && numeric < 80000) {
+          const date = new Date(Math.round((numeric - 25569) * 86400 * 1000));
+          return date.toISOString().slice(0, 10);
+        }
+      }
+
       const text = String(value).trim();
-      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-      if (!match) return '';
-      return `${match[1]}-${String(Number(match[2])).padStart(2, '0')}-${String(Number(match[3])).padStart(2, '0')}`;
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (match) {
+        return `${match[1]}-${String(Number(match[2])).padStart(2, '0')}-${String(Number(match[3])).padStart(2, '0')}`;
+      }
+
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) return formatDateWithOffset(date, APP_TIMEZONE_OFFSET_MINUTES);
+      return '';
+    }
+
+    function formatDateWithOffset(date, offsetMinutes) {
+      const shifted = new Date(date.getTime() + offsetMinutes * 60 * 1000);
+      return [
+        shifted.getUTCFullYear(),
+        String(shifted.getUTCMonth() + 1).padStart(2, '0'),
+        String(shifted.getUTCDate()).padStart(2, '0')
+      ].join('-');
     }
 
     function keepRepresentativeValue() {
@@ -2040,7 +2155,8 @@
       setValue('place', record.place);
       setValue('placeCode', record.placeCode);
       populateRepresentativeOptions(getCachedRepresentatives(), record.representative || currentRepresentative);
-      setValue('appointmentDate', record.appointmentDate);
+      setValue('awarenessProgramDate', normalizeInputDate(record.awarenessProgramDate));
+      setValue('appointmentDate', normalizeInputDate(record.appointmentDate || record.eyeCampDate));
       setValue('customerId', record.customerId || record.customerID);
       setValue('name', record.name);
       setValue('age', record.age);
@@ -2184,7 +2300,8 @@
       setValue('place', customer.place);
       setValue('placeCode', customer.placeCode);
       populateRepresentativeOptions(getCachedRepresentatives(), customer.representative || currentRepresentative);
-      setValue('appointmentDate', customer.appointmentDate);
+      setValue('awarenessProgramDate', normalizeInputDate(customer.awarenessProgramDate));
+      setValue('appointmentDate', normalizeInputDate(customer.appointmentDate || customer.eyeCampDate));
       setValue('customerId', customer.customerID || customer.customerId);
       setValue('name', customer.name);
       setValue('age', customer.age);
@@ -2225,6 +2342,7 @@
           throw new Error((result && result.message) || 'Update failed.');
         }
 
+        clearFormDraft();
         clearCustomerFields();
         await loadSheetCustomers();
         setActiveTab('list');
@@ -2553,6 +2671,8 @@
       updateConnectionState();
       setStatus('Offline mode enabled.');
     });
+
+    window.addEventListener('beforeunload', saveFormDraft);
   </script>
 </body>
 </html>

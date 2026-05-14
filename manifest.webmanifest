@@ -1,0 +1,20 @@
+{
+  "name": "BB Best Brand Optical",
+  "short_name": "BB Optical",
+  "description": "Offline customer entry for BB Best Brand Optical.",
+  "start_url": "Fill_APP_offline.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f7fb",
+  "theme_color": "#1769e0",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "assest/image/BB.jpeg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

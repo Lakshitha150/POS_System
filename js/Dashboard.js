@@ -23,6 +23,7 @@ let yearlyRevenueChart = null;
 let activeRevenueChartView = "year";
 let dashboardRefreshTimer = null;
 let dashboardRefreshInProgress = false;
+let dashboardCacheRefreshQueued = false;
 const PENDING_STATUS_FILTER = "__pending_customers__";
 
 async function loadDashboard() {
@@ -58,6 +59,18 @@ function startDashboardAutoRefresh() {
         loadDashboard();
     }, DASHBOARD_REFRESH_INTERVAL_MS);
 }
+
+window.addEventListener("pos-cache-updated", event => {
+    const type = event.detail && event.detail.type;
+    if (!["customers", "products", "orders", "places"].includes(type)) return;
+    if (dashboardCacheRefreshQueued) return;
+
+    dashboardCacheRefreshQueued = true;
+    window.setTimeout(() => {
+        dashboardCacheRefreshQueued = false;
+        loadDashboard();
+    }, 250);
+});
 
 async function getDashboardData() {
     try {
@@ -531,6 +544,12 @@ function getRecordDate(customer) {
 
 function parseDate(value) {
     if (!value) return null;
+    if (typeof value === "number" || /^\d+(\.\d+)?$/.test(String(value).trim())) {
+        const numeric = Number(value);
+        if (numeric > 20000 && numeric < 80000) {
+            return new Date(Math.round((numeric - 25569) * 86400 * 1000));
+        }
+    }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
 }
