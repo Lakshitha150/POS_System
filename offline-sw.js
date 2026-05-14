@@ -1,4 +1,4 @@
-const OFFLINE_CACHE_NAME = "optical-offline-entry-v2";
+const OFFLINE_CACHE_NAME = "optical-offline-entry-v3";
 const OFFLINE_APP_SHELL = [
   "./Fill_APP_offline.html",
   "./manifest.webmanifest",
@@ -25,6 +25,13 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  const isGoogleScriptApi = url.hostname === "script.google.com" || url.hostname === "script.googleusercontent.com";
+  if (isGoogleScriptApi) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)

@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const popup = document.getElementById("customerRegisterForm");
     const title = document.getElementById("registerTitle");
     const btn = document.getElementById("customer-submit");
+    const clearFormButton = document.getElementById("customer-clear-form");
     const filterIds = [
         "customer-search-filter",
         "customer-status-filter",
@@ -48,8 +49,23 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("add-customer").onclick = () => {
         popup.style.display = "block";
         title.innerText = "Add Customer";
+        form.reset();
+        isUpdate = false;
+        currentCustomerId = null;
+        btn.innerText = "Submit";
         applyLoggedInRepresentative();
     };
+
+    if (clearFormButton) {
+        clearFormButton.onclick = () => {
+            form.reset();
+            isUpdate = false;
+            currentCustomerId = null;
+            title.innerText = "Add Customer";
+            btn.innerText = "Submit";
+            applyLoggedInRepresentative();
+        };
+    }
 
     document.getElementById("customerRegisterForm-close").onclick = () => {
         popup.style.display = "none";
